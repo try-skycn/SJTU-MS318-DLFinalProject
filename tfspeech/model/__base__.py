@@ -29,7 +29,7 @@ class BaseInstance:
 		self.model = model
 		self.sess = tf.Session(graph=self.model.graph, config=tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True)))
 		with self.model.graph.as_default():
-			self.sess.run(tf.initialize_all_variables())
+			self.sess.run(tf.global_variables_initializer())
 
 	def update(self, X, y, learning_rate):
 		_, loss = self.sess.run([self.model.update, self.model.loss], feed_dict={self.model.learning_rate: learning_rate, self.model.X: X, self.model.y: y})

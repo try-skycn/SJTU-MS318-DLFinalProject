@@ -27,6 +27,8 @@ def dense(X, input_dim, output_dim, weight_scale, reg_list=None, actfn=tf.nn.rel
 	H = tf.matmul(X, W) + b
 	if actfn is not None:
 		H = actfn(H)
+	if input_dim == output_dim:
+		H = H + X
 	if reg_list is not None:
 		reg_list.append(tf.reduce_sum(W * W))
 	return H, output_dim
@@ -56,9 +58,12 @@ class Model(BaseModel):
 			X = tf.placeholder(shape=(None, width, num_channels), dtype=tf.float32, name="X")
 			y = tf.placeholder(shape=(None, num_classes), dtype=tf.float32, name="y")
 
-		with tf.variable_scope("Conv0"):
-			F, C = conv_settings[0]
-			H, hidden_width, hidden_channels = conv(X, width, num_channels, F, C, weight_scale, reg_list=reg_list)
+		if len(conv_settings) > 0:
+			with tf.variable_scope("Conv0"):
+				F, C = conv_settings[0]
+				H, hidden_width, hidden_channels = conv(X, width, num_channels, F, C, weight_scale, reg_list=reg_list)
+		else:
+			H, hidden_width, hidden_channels = X, width, num_channels
 
 		for i, (F, C) in enumerate(conv_settings[1:], start=1):
 			with tf.variable_scope("Conv{}".format(i)):
