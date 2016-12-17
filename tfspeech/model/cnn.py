@@ -78,7 +78,7 @@ class Model(BaseModel):
 		Y, hidden_dim = dense(H, hidden_dim, num_classes, weight_scale, reg_list=reg_list, actfn=None)
 
 		reg_loss = (0.5 * reg) * tf.add_n(reg_list)
-		softmax_loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(y, Y))
+		softmax_loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(Y, y))
 		loss = softmax_loss + reg_loss
 
 		learning_rate = tf.placeholder(dtype=tf.float32, name="learning_rate")
