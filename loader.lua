@@ -2,7 +2,7 @@ require "torch"
 local lfs = require "lfs"
 
 -- Meta Class
-Loader = {data = {}, width = 0, batch_size = 0, epoch_size = 0}
+Loader = {data = {}, label = {}, max_len = 0}
 
 local function visit(path)
 	local filelist = {}
@@ -42,8 +42,13 @@ local function readfile(file, size)
 	result = torch.Tensor(size):zero()
 	local i = 1
 	for line in io.lines(file) do
-		i = i + 1
-		result[i] = line
+		-- i = i + 1 -- keep one zero
+		-- result[i] = line
+		if tonumber(line) > 0.05 then 
+			i = i + 1
+			if i > size then i = 1 end
+			result[i] = line
+		end
 	end
 	return result
 end
@@ -61,33 +66,36 @@ end
 
 local function readpkg(pkglist, size)
 	local X = torch.Tensor(#pkglist, size, 2):fill(0.0)
-	local y = torch.Tensor(#pkglist, 4):fill(0.0)
+	local y = torch.Tensor(#pkglist):fill(0)
 	for i, f0_engy_label in ipairs(pkglist) do
-		local resX, y = readentry(f0_engy_label, size)
+		local resX, resy = readentry(f0_engy_label, size)
 		X[i] = resX:clone()
+		-- y[i][resy] = 1
+		y[i] = resy
 	end
 	return X, y
 end
 
-function Loader:new(o, width, batch_size, epoch_size)
-	o = o or {}
-	setmetatable(o, self)
+function Loader:new(obj, max_len)
+	obj = obj or {}
+	setmetatable(obj, self)
 	self.__index = self
-	self.width = width or 0
-	self.batch_size = batch_size or 0
-	self.epoch_size = epoch_size or 0
+	self.max_len = max_len or 0
 	self.data = {}
+	self.label = {}
 	pkgres = prepare_index("data/toneclassifier")
 	for name, pkglist in pairs(pkgres) do
-		self.data[name] = readpkg(pkglist, width)
+		self.data[name], self.label[name] = readpkg(pkglist, max_len)
 	end
+	return obj
 end
+	
+return Loader
 
-
-Loader:new(nil, 256, 0, 0)
-print(Loader.data['train']:size())
-print(Loader.data['test']:size())
-print(Loader.data['test_new']:size())
+-- ldr = Loader:new(nil, 256)
+-- print(ldr.label['train'][400])
+-- print(ldr.data['test']:size())
+-- print(ldr.data['test_new']:size())
 
 
 
