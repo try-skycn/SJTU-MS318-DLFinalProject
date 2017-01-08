@@ -44,7 +44,7 @@ local function readfile(file, size)
 	for line in io.lines(file) do
 		-- i = i + 1 -- keep one zero
 		-- result[i] = line
-		if tonumber(line) > 0.05 then 
+		if tonumber(line) > 50 then 
 			i = i + 1
 			if i > size then i = 1 end
 			result[i] = line
