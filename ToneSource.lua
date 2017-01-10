@@ -15,7 +15,7 @@ function Tone:__init(config)
 
 	args, self._valid_ratio, self._train_name, self._test_name, 
 	self._valid_name, self._data_path, self._scale, self._binarize, 
-	self._shuffle, load_all, input_preprocess, target_preprocess, self.max_len = xlua.unpack
+	self._shuffle, load_all, input_preprocess, target_preprocess, self.max_len, self.load_mode = xlua.unpack
 	(
 		{config},
 		'Tone',
@@ -94,6 +94,12 @@ function Tone:__init(config)
 			type = 'number',
 			default = 128,
 			help = 'max length of input data'
+		},
+		{
+			arg = 'load_mode',
+			type = 'string',
+			default = 'linear',
+			help = 'preprocessing data'
 		}
 	)
 	self:loadTrain()
@@ -109,7 +115,7 @@ function Tone:__init(config)
 end
 
 function Tone:loadTrain()
-	local train_data = self:loadData(self._train_name)
+	local train_data = self:loadData(self._train_name, self.load_mode)
 	self:setTrainSet(
 		self:createDataSet(train_data.data, train_data.label, 'train')
 	)
@@ -117,7 +123,7 @@ function Tone:loadTrain()
 end
 
 function Tone:loadValid()
-	local valid_data = self:loadData(self._valid_name)
+	local valid_data = self:loadData(self._valid_name, self.load_mode)
 	self:setValidSet(
 		self:createDataSet(valid_data.data, valid_data.label, 'valid')
 	)
@@ -125,7 +131,7 @@ function Tone:loadValid()
 end
 
 function Tone:loadTest()
-	local test_data = self:loadData(self._test_name)
+	local test_data = self:loadData(self._test_name, self.load_mode)
 	self:setTestSet(
 		self:createDataSet(test_data.data, test_data.label, 'test')
 	)
@@ -155,24 +161,192 @@ function Tone:createDataSet(inputs, targets, which_set)
 	return dataset
 end
 
-function Tone:loadData(name)
-	local ldr = Loader:new(nil, self.max_len)
+function moving_avg(vec, window)
+    local len = (#vec)[1]
+    local new_vec = torch.Tensor(len):fill(0.0)
+    for i = 1, (len - window) do
+        local sum = vec[{{i, i + window - 1}}]:sum() / window
+        new_vec[i] = sum
+    end
+    return new_vec
+end
+
+-- kick too large or too small values
+function kick(vec, topsmall, toplarge)
+    -- kick the smalls
+    local new_vec = torch.Tensor()
+    for i = 1, topsmall do
+        vec:csub(vec:min())
+        vec = vec[vec:gt(0.0)]:clone()
+    end
+    for i = 1, toplarge do
+        _, inds = torch.max(vec, 1)
+--         print(inds)
+        for j = 1, (#inds)[1] do
+            vec[inds[j]] = 0.0
+        end
+        vec = vec[vec:gt(0.0)]:clone()
+    end
+    return vec
+end
+
+-- fit a + b * x + c * x * x
+local matrix = require "matrix"
+local fit = {}
+local function getresults( mtx )
+    assert( #mtx+1 == #mtx[1], "Cannot calculate Results" )
+    mtx:dogauss()
+    -- tresults
+    local cols = #mtx[1]
+    local tres = {}
+    for i = 1,#mtx do
+        tres[i] = mtx[i][cols]
+    end
+    return unpack( tres )
+end
+
+function fit.parabola( x_values,y_values )
+    -- x_values = { x1,x2,x3,...,xn }
+    -- y_values = { y1,y2,y3,...,yn }
+
+    -- values for A matrix
+    local a_vals = {}
+    -- values for Y vector
+    local y_vals = {}
+
+    for i,v in ipairs( x_values ) do
+        a_vals[i] = { 1, v, v*v }
+        y_vals[i] = { y_values[i] }
+    end
+
+    -- create both Matrixes
+    local A = matrix:new( a_vals )
+    local Y = matrix:new( y_vals )
+
+    local ATA = matrix.mul( matrix.transpose(A), A )
+    local ATY = matrix.mul( matrix.transpose(A), Y )
+
+    local ATAATY = matrix.concath(ATA,ATY)
+
+    return getresults( ATAATY )
+end
+
+function fit_quad(vec, targetLen)
+    local len = (#vec)[1]
+    local xs = {}
+    local ys = {}
+    local a, b, c
+    for i = 1, len do
+        table.insert(xs, i)
+        table.insert(ys, vec[i])
+    end
+    a, b, c = fit.parabola(xs, ys)
+    local res = torch.Tensor(targetLen)
+    for i = 1, targetLen do
+        local ii = (i - 1) / (targetLen - 1) * (len - 1) + 1
+        res[i] = a + b * ii + c * ii * ii
+    end
+    return res
+end
+
+function make_linear_spine(vec, targetLen)
+    local len = (#vec)[1]
+    local ys = {}
+    
+    for i = 1, len do
+        table.insert(ys, vec[i])
+    end
+    
+    local res = torch.Tensor(targetLen)
+    
+    local i = 1
+    for ind = 1, targetLen do
+        local x = (ind - 1) * (len - 1) / (targetLen - 1) + 1
+        if  x > i then
+            i = i + 1
+        end
+        if x == i then 
+            res[ind] = ys[i]
+        else
+            res[ind] = (ys[i] - ys[i - 1]) * (x - i + 1) + ys[i - 1]
+        end
+    end
+    return res
+end
+
+function Tone:loadData(name, mode)
+	local ldr = Loader:new(nil, 256)
 	local collection = {data = ldr.data[name]:float(), label = ldr.label[name]}
     function collection:size() 
         return self.data:size(1) 
     end
+    
+    local standardization
     for i = 1, 2 do
-        -- we abandon engy...
-        if i == 2 then
-            collection.data[{{}, {}, i}]:fill(0)
-            break
+        for j = 1, collection:size() do
+            local std = collection.data[{j, {}, i}]:std()
+            collection.data[{j, {}, i}]:div(std)
         end
+    end
+
+    -- global standardization
+    for i = 1, 2 do
         local std = collection.data[{{}, {}, i}]:std()
         collection.data[{{}, {}, i}]:div(std)
-        -- for j = 1, collection:size() do
-        --     local std = collection.data[{j, {}, i}]:std()
-        --     collection.data[{j, {}, i}]:div(std)
-        -- end
     end
-    return collection
+
+    local resized_collection = {
+    	data = torch.Tensor(collection:size(), self.max_len,2):float(),
+    	label = collection.label
+	}
+    -- filter noice and shif to the beginning
+    for i = 1, collection:size() do
+        for j = 1, 256 do
+            if (collection.data[{i, j, 2}] < 2.0) then
+                collection.data[{i, j, 1}] = 0.0
+                collection.data[{i, j, 2}] = 0.0
+            end
+        end
+        local shifted_F0 = torch.Tensor(self.max_len):fill(0.0)
+        local shifted_Engy = torch.Tensor(self.max_len):fill(0.0)
+        local data = collection.data[{i, {}, {}}]
+        local tmpF0 = data[{{}, 1}][data[{{}, 1}]:gt(0.0)]:clone()
+        local tmpEngy = data[{{}, 2}][data[{{}, 2}]:gt(0.0)]:clone()
+        
+        tmpF0 = kick(tmpF0, 1, 0)
+        tmpEngy = kick(tmpEngy, 1, 0)
+
+        -- smooth
+        tmpF0 = moving_avg(tmpF0, 3)
+        tmpF0 = tmpF0[tmpF0:gt(0.0)]:clone()
+        tmpEngy = moving_avg(tmpEngy, 3)
+        tmpEngy = tmpF0[tmpF0:gt(0.0)]:clone()
+        
+        if mode == 'shift' then
+        	shifted_F0[{{2, (#tmpF0)[1] + 1}}] = tmpF0, 5
+        	shifted_Engy[{{2, (#tmpEngy)[1] + 1}}] = tmpEngy
+        	resized_collection.data[{i, {}, 1}] = shifted_F0
+        	resized_collection.data[{i, {}, 2}] = shifted_Engy
+    	elseif mode == 'quad' then
+        	resized_collection.data[{i, {}, 1}] = fit_quad(tmpF0, self.max_len)
+        	resized_collection.data[{i, {}, 2}] = fit_quad(tmpEngy, self.max_len)
+        elseif mode == 'linear' then
+        	resized_collection.data[{i, {}, 1}] = make_linear_spine(tmpF0, self.max_len)
+        	resized_collection.data[{i, {}, 2}] = make_linear_spine(tmpEngy, self.max_len)
+        end
+    end
+    -- restandardization on avg data
+    -- for i = 1, 2 do
+    --     for j = 1, collection:size() do
+    --         local std = resized_collection.data[{j, {}, i}]:std()
+    --         resized_collection.data[{j, {}, i}]:div(std)
+    --     end
+    -- end
+    -- for i = 1, 2 do
+    --     local std = resized_collection.data[{{}, {}, i}]:std()
+    --     resized_collection.data[{{}, {}, i}]:div(std)
+    -- end
+    -- we abandon engy...
+    resized_collection.data[{{}, {}, 2}]:fill(0)
+    return resized_collection
 end

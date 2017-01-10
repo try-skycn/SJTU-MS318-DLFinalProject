@@ -42,13 +42,8 @@ local function readfile(file, size)
 	result = torch.Tensor(size):zero()
 	local i = 1
 	for line in io.lines(file) do
-		-- i = i + 1 -- keep one zero
-		-- result[i] = line
-		if tonumber(line) > 50 then 
-			i = i + 1
-			if i > size then i = 1 end
-			result[i] = line
-		end
+		i = i + 1
+		result[i] = line
 	end
 	return result
 end

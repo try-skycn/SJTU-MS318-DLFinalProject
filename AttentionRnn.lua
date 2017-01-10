@@ -4,10 +4,11 @@ require 'ToneSource'
 
 cmd = torch.CmdLine()
 cmd:text()
-cmd:text('Train a Recurrent Neural Network for Tone Classification')
+cmd:text('Train a Attention-based Neural Network for Tone Classification')
 cmd:text('Example:')
-cmd:text('$> th SimpleRnn.lua --learningRate 0.01 <')
+cmd:text('$> th AttentionRnn.lua --learningRate 0.01 <')
 cmd:text('Options:')
+cmd:option('--load_mode', 'linear', 'linear | quad | shift')
 cmd:option('--learningRate', 0.1, 'learning rate at t=0')
 cmd:option('--minLR', 0.0001, 'minimum learning rate')
 cmd:option('--saturateEpoch', 100, 'epoch at which linear decayed LR will reach minLR')
@@ -49,7 +50,7 @@ if not opt.silent then
 end
 
 --[[Data Loading]]--
-local data_config = {max_len = opt.maxLen}
+local data_config = {max_len = opt.maxLen, load_mode = opt.load_mode}
 local ds = dp[opt.dataset](data_config)
 
 --[[Model Construction]]--
@@ -104,8 +105,20 @@ else
 		
 		inputSize = hiddenSize
 	end
-	net:add(nn.SelectTable(-1))
 	local hiddenSize = opt.rnnHiddenSize[#opt.rnnHiddenSize]
+	
+	gater = nn.Sequential()
+	gater:add(nn.Sequencer(nn.Linear(hiddenSize, 1))) 
+	gater:add(nn.Sequencer(nn[opt.transfer]()))
+	gater:add(nn.JoinTable(1, 1)) -- Join all activated hidden units
+	gater:add(nn.SoftMax())
+
+	attention = nn.ConcatTable()
+	attention:add(gater)
+	attention:add(nn.Sequencer(nn.Identity()))
+	
+	net:add(attention)
+	net:add(nn.MixtureTable())
 	net:add(nn.Linear(hiddenSize, 4))
 	net:add(nn.LogSoftMax())
 
@@ -198,7 +211,7 @@ end
 
 xp:verbose(not opt.silent)
 if not opt.silent then
-	print"SimpleRnn: "
+	print"AttentionRnn: "
 	print(net)
 end
 

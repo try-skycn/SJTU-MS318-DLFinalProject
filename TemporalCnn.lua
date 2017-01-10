@@ -7,13 +7,14 @@ cmd:text('Train a Temporal Convolutional Network for Tone Classification')
 cmd:text('Example:')
 cmd:text('$> th TemporalCnn.lua --learningRate 0.01 <')
 cmd:text('Options:')
+cmd:option('--load_mode', 'linear', 'linear | quad | shift')
 cmd:option('--learningRate', 0.01, 'learning rate at t=0')
 cmd:option('--minLR', 0.00001, 'minimum learning rate')
 cmd:option('--saturateEpoch', 100, 'epoch at which linear decayed LR will reach minLR')
 cmd:option('--momentum', 0.9, 'momentum')
 cmd:option('--maxOutNorm', -1, 'max norm each layers output neuron weights')
 cmd:option('--cutoffNorm', -1, 'max l2-norm of contatenation of all gradParam tensors')
-cmd:option('--batchSize', 10, 'number of examples per batch')
+cmd:option('--batchSize', 5, 'number of examples per batch')
 cmd:option('--cuda', false, 'use CUDA')
 cmd:option('--useDevice', 1, 'sets the device (GPU) to use')
 cmd:option('--maxEpoch', 300, 'maximum number of epochs to run')
@@ -25,7 +26,7 @@ cmd:option('--silent', false, 'dont print anything to stdout')
 
 --[[ convolutional layer ]]--
 cmd:option('--inputC', 2, "dimensionality of one sequence element")
-cmd:option('--outputC', 4, "number of derived features for one sequence element")
+cmd:option('--outputC', 2, "number of derived features for one sequence element")
 cmd:option('--convkw', 4, 'number of sequence element kernel operates on per step')
 cmd:option('--convdw', 4, 'step dw and go on to the next sequence element')
 cmd:option('--poolkw', 4, 'number of sequence element pooled on per step when pooling')
@@ -37,8 +38,8 @@ cmd:option('--hiddenSize', 64, 'umber of hidden units used in FC')
 
 --[[ data ]]--
 cmd:option('--dataset', 'Tone', 'dataset name: Tone')
-cmd:option('--maxLen', 128, 'length of input data')
-cmd:option('--trainEpochSize', -1, 'number of train examples seen between each epoch')
+cmd:option('--maxLen', 64, 'length of input data')
+cmd:option('--trainEpochSize', 800, 'number of train examples seen between each epoch')
 cmd:option('--validEpochSize', -1, 'number of valid examples used for early stopping and cross-validation')
 cmd:option('--noTest', false, 'dont propagate through the test set')
 
@@ -55,7 +56,7 @@ if not opt.silent then
 end
 
 --[[Data Loading]]--
-local data_config = {max_len = opt.maxLen}
+local data_config = {max_len = opt.maxLen, load_mode = opt.load_mode}
 local ds = dp[opt.dataset](data_config)
 
 --[[Model Construction]]--
