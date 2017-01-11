@@ -15,7 +15,7 @@ cmd:option('--saturateEpoch', 100, 'epoch at which linear decayed LR will reach 
 cmd:option('--momentum', 0.9, 'momentum')
 cmd:option('--maxOutNorm', -1, 'max norm each layers output neuron weights')
 cmd:option('--cutoffNorm', -1, 'max l2-norm of contatenation of all gradParam tensors')
-cmd:option('--batchSize', 5, 'number of examples per batch')
+cmd:option('--batchSize', 8, 'number of examples per batch')
 cmd:option('--cuda', false, 'use CUDA')
 cmd:option('--useDevice', 1, 'sets the device (GPU) to use')
 cmd:option('--maxEpoch', 300, 'maximum number of epochs to run')
@@ -80,11 +80,16 @@ if opt.xpPath ~= '' then
 else
 	local nOutputFrame = (opt.maxLen - opt.convkw) / opt.convdw + 1
 	local nOutputFrame = (nOutputFrame - opt.poolkw) / opt.pooldw + 1
+	-- local nOutputFrame = (nOutputFrame - opt.convkw) / opt.convdw + 1
+	-- local nOutputFrame = (nOutputFrame - opt.poolkw) / opt.pooldw + 1
 
 	net = nn.Sequential()
 	net:add(nn.TemporalConvolution(opt.inputC, opt.outputC, opt.convkw, opt.convdw))
 	net:add(nn[opt.transfer]())
 	net:add(nn.TemporalMaxPooling(opt.poolkw, opt.pooldw))
+	-- net:add(nn.TemporalConvolution(opt.outputC, opt.outputC, opt.convkw, opt.convdw))
+	-- net:add(nn[opt.transfer]())
+	-- net:add(nn.TemporalMaxPooling(opt.poolkw, opt.pooldw))
 	
 	net:add(nn.SplitTable(1,2))
 	net:add(nn.ReverseTable())
@@ -137,6 +142,7 @@ else
 	
 	net:add(attention)
 	net:add(nn.MixtureTable())
+	-- net:add(nn.SelectTable(-1))
 	net:add(nn.Linear(hiddenSize, 4))
 	net:add(nn.LogSoftMax())
 

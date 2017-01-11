@@ -26,7 +26,7 @@ cmd:option('--silent', false, 'dont print anything to stdout')
 
 --[[ convolutional layer ]]--
 cmd:option('--inputC', 2, "dimensionality of one sequence element")
-cmd:option('--outputC', 2, "number of derived features for one sequence element")
+cmd:option('--outputC', 4, "number of derived features for one sequence element")
 cmd:option('--convkw', 4, 'number of sequence element kernel operates on per step')
 cmd:option('--convdw', 4, 'step dw and go on to the next sequence element')
 cmd:option('--poolkw', 4, 'number of sequence element pooled on per step when pooling')
@@ -74,10 +74,13 @@ if opt.xpPath ~= '' then
 	opt = xp.opt
 else
 	local nOutputFrame = (opt.maxLen - opt.convkw) / opt.convdw + 1
+	local nOutputFrame = (nOutputFrame - opt.convkw) / opt.convdw + 1
 	local nOutputFrame = (nOutputFrame - opt.poolkw) / opt.pooldw + 1
 
 	net = nn.Sequential()
 	net:add(nn.TemporalConvolution(opt.inputC, opt.outputC, opt.convkw, opt.convdw))
+	net:add(nn[opt.transfer]())
+	net:add(nn.TemporalConvolution(opt.outputC, opt.outputC, opt.convkw, opt.convdw))
 	net:add(nn[opt.transfer]())
 	net:add(nn.TemporalMaxPooling(opt.poolkw, opt.pooldw))
 	net:add(nn.View(opt.outputC * nOutputFrame))

@@ -8,6 +8,7 @@ cmd:text('Train a Recurrent Neural Network for Tone Classification')
 cmd:text('Example:')
 cmd:text('$> th SimpleRnn.lua --learningRate 0.01 <')
 cmd:text('Options:')
+cmd:option('--load_mode', 'linear', 'linear | quad | shift')
 cmd:option('--learningRate', 0.1, 'learning rate at t=0')
 cmd:option('--minLR', 0.0001, 'minimum learning rate')
 cmd:option('--saturateEpoch', 100, 'epoch at which linear decayed LR will reach minLR')
@@ -26,7 +27,7 @@ cmd:option('--silent', false, 'dont print anything to stdout')
 
 --[[ recurrent layer ]]--
 cmd:option('--inputSize', 2, "dimensionality of one sequence element")
-cmd:option('--rnnHiddenSize', {128}, "hidden size of recurrent layer")
+cmd:option('--rnnHiddenSize', {64}, "hidden size of recurrent layer")
 cmd:option('--lstm', false, 'use long short term memory')
 
 --[[ data ]]--
@@ -49,7 +50,7 @@ if not opt.silent then
 end
 
 --[[Data Loading]]--
-local data_config = {max_len = opt.maxLen}
+local data_config = {max_len = opt.maxLen, load_mode = opt.load_mode}
 local ds = dp[opt.dataset](data_config)
 
 --[[Model Construction]]--

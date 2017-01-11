@@ -274,6 +274,25 @@ function make_linear_spine(vec, targetLen)
     return res
 end
 
+function fit_tail(vec, targetLen, portion)
+    local len = (#vec)[1]
+    local start = math.modf(len * portion)
+    local xs = {}
+    local ys = {}
+    local a, b, c
+    for i = 1, len - start do
+        table.insert(xs, i)
+        table.insert(ys, vec[i + start])
+    end
+    a, b, c = fit.parabola(xs, ys)
+    local res = torch.Tensor(targetLen)
+    for i = 1, targetLen do
+        local ii = (i - 1) / (targetLen - 1) * (len - start - 1) + 1
+        res[i] = a + b * ii + c * ii * ii
+    end
+    return res
+end
+
 function Tone:loadData(name, mode)
 	local ldr = Loader:new(nil, 256)
 	local collection = {data = ldr.data[name]:float(), label = ldr.label[name]}
@@ -281,7 +300,12 @@ function Tone:loadData(name, mode)
         return self.data:size(1) 
     end
     
-    local standardization
+    -- Mel Frequency
+    for j = 1, collection:size() do
+        collection.data[{j, {}, 1}]:div(700):log1p():mul(5975.208)
+    end
+
+    -- local standardization
     for i = 1, 2 do
         for j = 1, collection:size() do
             local std = collection.data[{j, {}, i}]:std()
@@ -302,7 +326,7 @@ function Tone:loadData(name, mode)
     -- filter noice and shif to the beginning
     for i = 1, collection:size() do
         for j = 1, 256 do
-            if (collection.data[{i, j, 2}] < 2.0) then
+            if (collection.data[{i, j, 2}] < 1.0) then
                 collection.data[{i, j, 1}] = 0.0
                 collection.data[{i, j, 2}] = 0.0
             end
@@ -316,14 +340,18 @@ function Tone:loadData(name, mode)
         tmpF0 = kick(tmpF0, 1, 0)
         tmpEngy = kick(tmpEngy, 1, 0)
 
+        -- cut
+        -- local cut_len = (#tmpF0)[1] * 0.4
+        -- tmpF0 = tmpF0[{{cut_len, -1}}]
+
         -- smooth
         tmpF0 = moving_avg(tmpF0, 3)
         tmpF0 = tmpF0[tmpF0:gt(0.0)]:clone()
         tmpEngy = moving_avg(tmpEngy, 3)
-        tmpEngy = tmpF0[tmpF0:gt(0.0)]:clone()
+        tmpEngy = tmpEngy[tmpEngy:gt(0.0)]:clone()
         
         if mode == 'shift' then
-        	shifted_F0[{{2, (#tmpF0)[1] + 1}}] = tmpF0, 5
+        	shifted_F0[{{2, (#tmpF0)[1] + 1}}] = tmpF0
         	shifted_Engy[{{2, (#tmpEngy)[1] + 1}}] = tmpEngy
         	resized_collection.data[{i, {}, 1}] = shifted_F0
         	resized_collection.data[{i, {}, 2}] = shifted_Engy
@@ -333,20 +361,28 @@ function Tone:loadData(name, mode)
         elseif mode == 'linear' then
         	resized_collection.data[{i, {}, 1}] = make_linear_spine(tmpF0, self.max_len)
         	resized_collection.data[{i, {}, 2}] = make_linear_spine(tmpEngy, self.max_len)
-        end
+        elseif mode == 'hybrid' then
+            resized_collection.data[{i, {}, 1}] = fit_quad(tmpF0, self.max_len)
+            resized_collection.data[{i, {}, 2}] = fit_tail(tmpF0, self.max_len, 0.5)
+        else return nil end
     end
     -- restandardization on avg data
+    for i = 1, 2 do
+        for j = 1, collection:size() do
+            local mean = resized_collection.data[{j, {}, i}]:mean()
+            resized_collection.data[{j, {}, i}]:csub(mean)
+        end
+    end
     -- for i = 1, 2 do
-    --     for j = 1, collection:size() do
-    --         local std = resized_collection.data[{j, {}, i}]:std()
-    --         resized_collection.data[{j, {}, i}]:div(std)
-    --     end
-    -- end
-    -- for i = 1, 2 do
-    --     local std = resized_collection.data[{{}, {}, i}]:std()
-    --     resized_collection.data[{{}, {}, i}]:div(std)
+    -- 	local mean = resized_collection.data[{{}, {}, i}]:mean()
+    --     resized_collection.data[{{}, {}, i}]:csub(mean)
+    --     -- local std = resized_collection.data[{{}, {}, i}]:std()
+    --     -- resized_collection.data[{{}, {}, i}]:div(std)
     -- end
     -- we abandon engy...
-    resized_collection.data[{{}, {}, 2}]:fill(0)
+    if mode ~= 'hybrid' then
+        resized_collection.data[{{}, {}, 2}]:fill(0)
+    end
+
     return resized_collection
 end
