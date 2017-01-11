@@ -1,0 +1,88 @@
+%\usepackage{ctex}
+\usepackage{fancyhdr}
+% \usepackage{extramarks}
+\usepackage{cite}
+\usepackage{color}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{setspace}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{cmap}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{indentfirst}
+\usepackage{makecell}
+\usepackage{mathrsfs}
+\usepackage{multirow}
+\usepackage{enumerate}
+\usepackage{bm}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{tikz}
+\usepackage{subcaption}
+\usetikzlibrary{automata,positioning,topaths}
+%\usepackage{xeCJK}
+%\usepackage{minted}
+\title{
+	\vspace{2in}
+	\textbf{\courseName} \\
+	\textbf{\homeworkID} \\
+	\semester
+	\vspace{3in}
+}
+\author{
+	\textbf{\authorName} \\
+	Student ID: \authorID
+}
+\date{}
+
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in
+
+\linespread{1.2}
+
+\pagestyle{fancy}
+\lhead{\authorName}
+\chead{\courseName}
+\rhead{Problem \arabic{chapterCounter}.\arabic{problemCounter}}
+\cfoot{\thepage}
+
+\newcounter{chapterCounter}
+\newcounter{problemCounter}
+\newcounter{partCounter}
+
+\newenvironment{problem}[2]{
+	\setcounter{chapterCounter}{#1}
+	\setcounter{problemCounter}{#2}
+	\section*{Problem \arabic{chapterCounter}.\arabic{problemCounter}}
+	\setcounter{partCounter}{1}
+}{}
+\newenvironment{subproblem}[0]{
+	\subsection*{Part \Alph{partCounter}}
+	\stepcounter{partCounter}
+}{}
+
+\newtheorem{theorem}{Theorem}%[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+
+\newcommand{\solution}{\paragraph{Solution}}
+\newcommand{\upperbound}[1]{O\left(#1\right)}
+\newcommand{\lowerbound}[1]{\Omega\left(#1\right)}
+\newcommand{\exactbound}[1]{\Theta\left(#1\right)}
+
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\downcast}[1]{\lfloor#1\rfloor}
+\newcommand{\upcast}[1]{\lceil#1\rceil}
