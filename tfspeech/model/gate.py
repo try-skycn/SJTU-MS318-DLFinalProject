@@ -20,7 +20,7 @@ def interval(X, a, b, scale=0.2, name="Interval"):
 		bottom = tf.nn.relu6(X - a)
 		top = tf.nn.relu6(- X + b)
 
-		return bottom * top
+		return bottom * top / 36
 
 def derivative(X, filter_size, name="Derivative"):
 	with tf.variable_scope(name):
@@ -54,22 +54,22 @@ class Model(BaseModel):
 		Xpp = derivative(Xp, 3, name="SecondOrder")
 		Xppp = derivative(Xpp, 3, name="ThirdOrder")
 
-		valid = interval(X, 50, 300, name="Valid")
+		valid = interval(X, 50, 500, name="Valid")
 		good = interval(Xppp, -5, 5, name="Good")
 
-		flat = interval(Xp, -3, 3, name="Flat") * valid * good
-		goup = interval(Xp, 3, 10, name="GoUp") * valid * good
-		godown = interval(Xp, -10, -3, name="GoDown") * valid * good
-		valley = interval(Xpp, 5, 20, name="Valley") * valid * good
+		flat = interval(Xp, -1, 1, name="Flat")
+		goup = interval(Xp, 0.3, 5, name="GoUp")
+		godown = interval(Xp, -5, -0.3, name="GoDown")
+		valley = interval(Xpp, 0.3, 2, name="Valley")
 
-		feature = tf.pack([flat, goup, valley, godown], axis=1)
+		feature = tf.pack([flat, goup, valley, godown], axis=1) * tf.expand_dims(valid * good, 1)
 		feature = tf.reduce_mean(feature, axis=[2, 3])
 
 		with tf.variable_scope("Final"):
 			W = tf.get_variable(dtype=tf.float32, initializer=np.float32(np.identity(4) + np.random.randn(4, 4) * weight_scale), name="W")
 			Y = tf.matmul(feature, W)
 
-		loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(Y, y))
+		loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(Y, y))
 
 		learning_rate = tf.placeholder(dtype=tf.float32, name="learning_rate")
 		update = _optimizer_map[optimizer](learning_rate).minimize(loss)
@@ -81,9 +81,31 @@ class Model(BaseModel):
 		self.loss = loss
 		self.update = update
 
+		self.activate = {
+			"Xp": Xp,
+			"Xpp": Xpp,
+			"Xppp": Xppp,
+
+			"valid": valid,
+			"good": good,
+			"flat": flat,
+			"goup": goup,
+			"valley": valley,
+			"godown": godown,
+
+			"feature": feature
+		}
+
 class ModelInstance(BaseInstance):
 	def update(self, X, y, learning_rate):
 		return super(ModelInstance, self).update(X[:, :, 0:1], y, learning_rate)
 
 	def predict(self, X):
+		print(super(ModelInstance, self))
 		return super(ModelInstance, self).predict(X[:, :, 0:1])
+
+	def activate(self, X):
+		result = {}
+		for name, var in self.model.activate.items():
+			result[name] = self.sess.run(var, feed_dict={self.model.X: X[:, :, 0:1]})
+		return result
