@@ -1,65 +1,44 @@
-def _apply_color(color_idx, s):
-	return "\033[{color_idx};1m{s}\033[m".format(color_idx=color_idx, s=s)
-
-def _apply_format(color_idx, fieldname, *args):
-	return "{fieldname} {args}".format(
-				fieldname=_apply_color(color_idx, "[{}] ==>".format(fieldname)),
-				args=' '.join(
-							["{}: {}".format(x, y) for x, y in args]
-						)
-			)
-
-_color_map = {
-	"step": 32,
-	"train": 33,
-	"test": 33,
-	"test_new": 31
-}
-
 class Solver:
-	def __init__(self, data, modelinst, **kwargs):
+	def __init__(self, data, model):
 		self.data = data
-		self.modelinst = modelinst
-		self._learning_rate = kwargs.pop("learning_rate")
-		self._num_epochs = kwargs.pop("num_epochs")
-		self._verbose = kwargs.pop("verbose", False)
-		self.history = {}
-
-	def _push_history(self, fieldname, step, *args):
-		self.history.setdefault(fieldname, {})
-		fieldhistory = self.history[fieldname]
-		for metricname, metricvalue in args:
-			fieldhistory.setdefault(metricname, [])
-			fieldhistory[metricname].append((step, metricvalue))
-		self._print_history(fieldname, *args)
-
-	def _print_step(self, step):
-		if self._verbose >= 0:
-			print(_apply_color(_color_map["step"], "step") + " {}".format(step))
-
-	def _print_history(self, fieldname, *args):
-		if self._verbose:
-			print(_apply_format(_color_map[fieldname], fieldname, *args))
-
-	def _update(self, X, y):
-		return float(self.modelinst.update(X, y, learning_rate=self._learning_rate))
-
-	def _accuracy(self, X, y):
-		return float((self.modelinst.predict(X).argmax(1) == y.argmax(1)).mean())
+		self.model = model
+		self.kwargs = {}
 
 	def train(self):
-		step = 0
-		for epochidx in range(1, self._num_epochs + 1):
-			for X, y in self.data.get("train"):
-				step += 1
-				self._print_step(step)
+		batch_size = self.kwargs["batch_size"]
+		epoch_size = self.kwargs["epoch_size"]
+		epochs = self.kwargs["epochs"]
 
-				loss = self._update(X, y)
-				accuracy = self._accuracy(X, y)
-				self._push_history("train", step, ("loss", loss), ("accuracy", accuracy))
+		lr_it = self.kwargs["learning_rate"]
+		lr_decay = self.kwargs["learning_rate_decay"]
+		print_every = self.kwargs["print_every"]
 
-			accuracy = self._accuracy(*self.data.get("test"))
-			self._push_history("test", step, ("accuracy", accuracy))
+		self.sess = self.model.session()
+		node_X = self.model.node["X"]
+		node_y = self.model.node["y"]
+		node_update = self.model.node["update"]
+		node_loss = self.model.node["loss"]
+		node_accuracy = self.model.node["accuracy"]
+		node_learning_rate = self.model.node["learning_rate"]
 
-		accuracy = self._accuracy(*self.data.get("test_new"))
-		self._push_history("test_new", step, ("accuracy", accuracy))
+		for e in range(epochs):
+			loss_list = []
+			for it in range(epoch_size):
+				X, y = data.sample("train", batch_size)
+				_, loss = self.sess.run([node_update, node_loss], feed_dict={node_X: X, node_y: y, node_learning_rate: lr_it})
+				loss_list.append(loss)
+			if (e + 1) % print_every == 0:
+				mean_loss = np.mean(loss_list)
+				loss_list.clear()
+				X, y = data.get("train")
+				train_accuracy = self.sess.run(node_accuracy, feed_dict={node_X: X, node_y: y})
+				X, y = data.get("test")
+				test_accuracy = self.sess.run(node_accuracy, feed_dict={node_X: X, node_y: y})
+				X, y = data.get("test_news")
+				test_new_accuracy = self.sess.run(node_accuracy, feed_dict={node_X: X, node_y: y})
+				print(
+					"Epoch: {}, lr {:.4f}, loss {:.4f}, train acc {:.2f}%, test acc {:.2f}%, test_new acc {:.2f}%".format(
+						e+1, lr_it, mean_loss, train_accuracy, test_accuracy, test_new_accuracy
+					)
+				)
+			lr_it = lr_it * lr_decay
