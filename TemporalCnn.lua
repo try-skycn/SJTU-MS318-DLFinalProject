@@ -74,14 +74,14 @@ if opt.xpPath ~= '' then
 	opt = xp.opt
 else
 	local nOutputFrame = (opt.maxLen - opt.convkw) / opt.convdw + 1
-	local nOutputFrame = (nOutputFrame - opt.convkw) / opt.convdw + 1
+	-- local nOutputFrame = (nOutputFrame - opt.convkw) / opt.convdw + 1
 	local nOutputFrame = (nOutputFrame - opt.poolkw) / opt.pooldw + 1
 
 	net = nn.Sequential()
 	net:add(nn.TemporalConvolution(opt.inputC, opt.outputC, opt.convkw, opt.convdw))
 	net:add(nn[opt.transfer]())
-	net:add(nn.TemporalConvolution(opt.outputC, opt.outputC, opt.convkw, opt.convdw))
-	net:add(nn[opt.transfer]())
+	-- net:add(nn.TemporalConvolution(opt.outputC, opt.outputC, opt.convkw, opt.convdw))
+	-- net:add(nn[opt.transfer]())
 	net:add(nn.TemporalMaxPooling(opt.poolkw, opt.pooldw))
 	net:add(nn.View(opt.outputC * nOutputFrame))
 	if opt.dropout > 0 then

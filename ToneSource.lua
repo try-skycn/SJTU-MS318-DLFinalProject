@@ -336,18 +336,58 @@ function Tone:loadData(name, mode)
         local data = collection.data[{i, {}, {}}]
         local tmpF0 = data[{{}, 1}][data[{{}, 1}]:gt(0.0)]:clone()
         local tmpEngy = data[{{}, 2}][data[{{}, 2}]:gt(0.0)]:clone()
+
+        -- smooth (refer to a paper)
+        local tmpF0_prime = tmpF0:clone()
+        local c_1 = 0.3
+        local c_2 = 0.5
+        -- half or double
+        for j = 2, (#tmpF0)[1] do
+            if math.abs(tmpF0[j] / 2 - tmpF0[j - 1]) < c_1 then 
+                tmpF0[j] = tmpF0[j] / 2
+            elseif math.abs(2 * tmpF0[j] - tmpF0[j - 1]) < c_1 then
+                tmpF0[j] = tmpF0[j] * 2
+            end
+        end
+        -- random error
+        for j = 3, (#tmpF0)[1] - 1 do
+            if math.abs(tmpF0[j] - tmpF0_prime[j - 1]) > c_1 and math.abs(tmpF0[j + 1] - tmpF0_prime[j - 1]) > c_2 then
+                tmpF0_prime[j] = 2 * tmpF0_prime[j - 1] - tmpF0_prime[j - 2]
+            elseif math.abs(tmpF0[j] - tmpF0_prime[j - 1]) > c_1 and math.abs(tmpF0[j + 1] - tmpF0_prime[j - 1]) <= c_2 then
+                tmpF0_prime[j] = 0.5 * (tmpF0_prime[j - 1] + tmpF0[j + 1])
+            else 
+                tmpF0_prime[j] = tmpF0[j] 
+            end
+        end
+        -- backward check
+        for j = (#tmpF0)[1] - 2, 2, -1 do
+            if math.abs(tmpF0_prime[j] - tmpF0_prime[j + 1]) > c_1 and math.abs(tmpF0_prime[j - 1] - tmpF0_prime[j + 1]) > c_2 then
+                tmpF0[j] = 2 * tmpF0_prime[j + 1] - tmpF0_prime[j + 2]
+            elseif math.abs(tmpF0_prime[j] - tmpF0_prime[j - 1]) > c_1 and math.abs(tmpF0_prime[j + 1] - tmpF0_prime[j - 1]) <= c_2 then
+                tmpF0[j] = 0.5 * (tmpF0_prime[j + 1] + tmpF0_prime[j - 1])
+            else 
+                tmpF0[j] = tmpF0_prime[j]
+            end
+            if math.abs(tmpF0_prime[j] - tmpF0[j]) < c_1 then
+                for k = 1, j - 1 do
+                    tmpF0[k] = tmpF0_prime[k]
+                end
+                break
+            end
+        end
         
-        tmpF0 = kick(tmpF0, 1, 0)
-        tmpEngy = kick(tmpEngy, 1, 0)
+        -- kick minimun and maximum (better not do it)
+        -- tmpF0 = kick(tmpF0, 1, 0)
+        -- tmpEngy = kick(tmpEngy, 1, 0)
 
         -- cut
         -- local cut_len = (#tmpF0)[1] * 0.4
         -- tmpF0 = tmpF0[{{cut_len, -1}}]
 
         -- smooth
-        tmpF0 = moving_avg(tmpF0, 3)
+        tmpF0 = moving_avg(tmpF0, 5)
         tmpF0 = tmpF0[tmpF0:gt(0.0)]:clone()
-        tmpEngy = moving_avg(tmpEngy, 3)
+        tmpEngy = moving_avg(tmpEngy, 5)
         tmpEngy = tmpEngy[tmpEngy:gt(0.0)]:clone()
         
         if mode == 'shift' then
@@ -363,7 +403,7 @@ function Tone:loadData(name, mode)
         	resized_collection.data[{i, {}, 2}] = make_linear_spine(tmpEngy, self.max_len)
         elseif mode == 'hybrid' then
             resized_collection.data[{i, {}, 1}] = fit_quad(tmpF0, self.max_len)
-            resized_collection.data[{i, {}, 2}] = fit_tail(tmpF0, self.max_len, 0.5)
+            resized_collection.data[{i, {}, 2}] = make_linear_spine(tmpF0, self.max_len)
         else return nil end
     end
     -- restandardization on avg data
