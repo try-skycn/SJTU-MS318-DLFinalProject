@@ -135,7 +135,7 @@ We use a convolutional layer with 4 $4\times 1$ kernels and a pooling layer of s
 \section{Experiments}
 
 We tried each model on each dataset, implemented by each framework.
-Note that for time consumption, we ran each program for ten times, and then calculate its mean and standard deviation.
+Note that for accuracies we take the maximum over all trails and for time consumption, we ran each program for ten times, and then calculate its mean and standard deviation.
 The CPU is Intel Xeon E3-1230 V2 @ 3.3GHz.
 
 \subsection{Hyperparameters}
@@ -256,7 +256,7 @@ cnn.fc & training set accuracy & $90.25\%$ & $\bm{97.75}$\% & 95.50 \% \\
 
 \subsection{Time consumption}
 
-From the experiment results, we can see that \textbf{Torch} is fastest when we apply ``pure.fc'' model. But for the ``cnn.fc'' model, there are not too much difference between different models.
+From the experiment results, we can see that \textbf{Torch} is fastest when we apply ``pure.fc'' model. But for the ``cnn.fc'' model, there are not too much difference between different models. Although {\bf Theano} beats {\bf Tensorflow} on time criterion in the most cases, remember that we do not take the compiling time into account, {\bf Theano} could be very slow when compiling big models.
 
 \subsection{Accuracy}
 
@@ -270,8 +270,14 @@ And if we focus only on ``data.shift'' dataset, we can see that there are huge g
 
 But compare this result with other preprocessed dataset, we can see the effectiveness of preprocessing.
 
-\subsection{The triumph of simple models}
-The experiment shows that the simple model
+\subsection{Difficulties in Implementation}
+{\bf Torch}: It could be very straightforward if you want to construct a normal neural network. Torch provides you with perfect interface, but, in lua.
+
+{\bf Theano}: It would be somewhat messy if you use Theano without Keras. You need to implement every low level details for constructing NNs and training it well. 
+
+{\bf Tensorflow}: Full-functional interface in Python, it is the most attractive feature of Tensorflow.  And its document is quite thorough.
+%\subsection{The triumph of simple models}
+%The experiment shows that the simple model
 
 
 %\section{References}
