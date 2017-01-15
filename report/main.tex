@@ -36,8 +36,8 @@ We only keep the non-zero part of \texttt{f0} after processing as the output of 
 
 \subsection{Smoothing}
 The extracted \texttt{f0} alway has some obvious double, half or random error point. We need to do further smoothing for offering better feature to the tone recognizer. Typically, we can use some approaches such as linear interpolation, moving average to make the frequencies varies smoothly. But those method cannot deal with the case that data containing continuous random error points which is quite common in our dataset. We use a search-based algorithm
-%	\cite{tone:2000}
-	to smooth the frequency data. In that paper, the author used this algorithm to decrease the recognition error rate by $40\%$. 
+%\cite{tone:2000}
+to smooth the frequency data. In that paper, the author used this algorithm to decrease the recognition error rate by $40\%$. 
 	
 We search from a smooth beginning of \texttt{f0} data, and adjust each data point in order. Let $f_1, f_2, \dots, f_{N}$ be the frequencies of $N$ continues frames. When we deal with the $i$-th data point $f_i$ we first deal with the case of double of half frequency. If 
 \[ |f_i / 2 - f_{i-1}| < C_1 \text{, then we let } f'_i = f_i / 2;\]
@@ -193,15 +193,15 @@ cnn.fc & training set accuracy & 93.00\% & 98.00\% &97.75\%\\
 \hline
  & & data.shift & data.linear & data.quad \\
 \hline
-pure.fc & training set accuracy & \\
- & test set accuracy & \\
- & test\_new set accuracy & \\
- & time & \\
+pure.fc & training set accuracy & $85.50\%$ & $93.50\%$ & $93.75\%$ \\
+ & test set accuracy & $77.50\%$ & $\mathbf{100\%}$ & $\mathbf{100.00\%}$ \\
+ & test\_new set accuracy & $57.46\%$ & $93.86\%$ & $93.86\%$ \\
+ & time & $22.60\pm0.22$s & $23.45\pm0.43$s & $23.28\pm0.31$s \\
 \hline
-cnn.fc & training set accuracy & \\
- & test set accuracy & \\
- & test\_new set accuracy & \\
- & time & \\
+cnn.fc & training set accuracy & $87.5\%$ & $95.25\%$ & $95.50\%$ \\
+ & test set accuracy & $85.00\%$ & $\mathbf{100.00\%}$ & $100.00\%$ \\
+ & test\_new set accuracy & $56.58\%$ & $94.74\%$ & $94.30\%$ \\
+ & time & $36.03\pm0.37$s & $35.83\pm0.16$s & $35.89\pm0.87$s\\
 \hline
 \end{tabular}
 \caption{Performance and time consumption on Theano.}
@@ -245,9 +245,9 @@ And if we focus only on ``data.shift'' dataset, we can see that there are huge g
 
 But compare this result with other preprocessed dataset, we can see the effectiveness of preprocessing.
 
-\section{References}
-\bibliography{main}
-
-\bibliographystyle{main}
+% \section{References}
+% \bibliography{main}
+% 
+% \bibliographystyle{main}
 
 \end{document}
