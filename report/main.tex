@@ -14,6 +14,11 @@
 \pagebreak
 
 \section{Introduction}
+
+In this report, we proposed some method for processing data in tone classification problem, used several deep neural networds structure, did some experiments, and compared their performance and time consumptions.
+
+The data set that our teaching assistances gave us has only $400$ data for training. This is a number that is not so sufficient for very large or very deep network to train. Since then, we can only use some small networks. But, the data is not so regular that small networks can not sperate the original data. This situation forces us to find some way to preprocess our data, then to feed the preprocessed data into the networks.
+
 \section{Data Preprocessing}
 
 Our prior knowledge tells us that the tone recognition task only requires pitch contour information, which can be expressed by fundamental frequency. Fortunately, the feature \texttt{f0} as well as \texttt{engy} feature have already given to us. But it does not mean we can use the \texttt{f0} feature directly for three reasons: 1) there are some noise and redundant information in the raw \texttt{f0} feature, which would be great distraction; 2) there numerical values of \texttt{f0} feature varies in a large range so that it will increase difficulties when training; 3) the sequences of features are not of the same length so that it is not suitable for a wide range of models. Therefore, we can not circumvent data preprocessing part. In this section, we will introduce a pipeline of data preprocessing for normalization, removing redundant information, smoothing and denoising data and finally expanding to the same length. Experiments show that data preprocessing can influence performance of models significantly.
