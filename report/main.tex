@@ -7,15 +7,35 @@
 \newcommand{\authorID}{5140309566, 5140309562, 5140309561}
 \newcommand{\semester}{2016-2017 Fall}
 \begin{document}
+
+
+
 \maketitle
 \pagebreak
 
 \section{Introduction}
-\section{Data Sets}
+\section{Data Preprocessing}
 
-In this project, we made $3$ datasets from the original data. They are
+Our prior knowledge tells us that the tone recognition task only requires pitch contour information, which can be expressed by fundamental frequency. Fortunately, the feature \texttt{f0} as well as \texttt{engy} feature have already given to us. But it does not mean we can use the \texttt{f0} feature directly for three reasons: 1) there are some noise and redundant information in the raw \texttt{f0} feature, which would be great distraction; 2) there numerical values of \texttt{f0} feature varies in a large range so that it will increase difficulties when training; 3) the sequences of features are not of the same length so that it is not suitable for a wide range of models. Therefore, we can not circumvent data preprocessing part. In this section, we will introduce a pipeline of data preprocessing for normalization, removing redundant information, smoothing and denoising data and finally expanding to the same length. Experiments show that data preprocessing can influence performance of models significantly.
+\subsection{Mel Scale}
+We first convert the foundational frequency (\texttt{f0}) in the mel-scale. The reason we do that is the Mel frequency is much closer the non-linear sensing measurement of human listeners. We use a popular version\footnote{\url{https://en.wikipedia.org/wiki/Mel-frequency_cepstrum}} of mel-scale formula as
+	\[\mathtt{Mel}(f) = 2595\log_{10}(1+f/ 700).\]
+	
+However, the frequencies in mel-scale are not very robust in the presence of additive noise, and so it is common to normalize them in speech recognition systems to lessen the influence of noise.
+\subsection{Standardization}
+When normalizing data, we only divide its standard derivation but do not subtract its mean, since there are some zeros in the data sequence. Besides, we conduct two types of standardization. One is called \textbf{local standardization}, in which divide the \texttt{std} of a certain feature it self, to avoid some data varies in a huge range. The other is to divide the \texttt{std} of the whole data set for easier training, called \textbf{global standardization}. We do the local standardization first, then do global standardization, for both \texttt{f0} and \texttt{engy}.
+\subsection{Removing Redundancy}
+As we observe in the training data, there some redundancies in the \texttt{f0} features: Although the \texttt{engy} is very low (even is zero), the \texttt{f0} is still very high and behaves strangely. We think this part of \texttt{f0} is redundant because even human listeners cannot recognize a tone in very low volume. Further, this part of \texttt{f0} is more likely from environments instead of human speaker because of low corresponding \texttt{engy}. Hence, in data preprocessing, we discard the redundancies of \texttt{f0} such that corresponding $\mathtt{standardized(engy)} < 1.0$. 
+
+We only keep the non-zero part of \texttt{f0} after processing as the output of this stage. This part of data still contains some noise. So in the next step, we are going to try to denoise the \texttt{f0} feature.
+
+\subsection{Smoothing}
+	We 
+%	\cite{tone:2000}
+
+\subsection{Data Expansion}
 \begin{enumerate}
-\item f0.shift.160
+\item data.shift
 
 	This dataset is made by shift the beginning of ``f0'' feature to its first non-zero element. Then we pad $0$s at the end of the data to make its length be $160$ (since the longest data has length $157$).
 
@@ -35,6 +55,8 @@ In this project, we made $3$ datasets from the original data. They are
 	The dataset is saved in file ``shared data/data\_quad.json''.
 
 \end{enumerate}
+
+\subsection{Centralization}
 
 \section{Models}
 
@@ -168,5 +190,10 @@ cnn.fc & training set accuracy & & $95.00\%$ & \\
 \end{figure}
 
 \section{Conclusion}
+
+\section{References}
+\bibliography{main}
+
+\bibliographystyle{main}
 
 \end{document}
