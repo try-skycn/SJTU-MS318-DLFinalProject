@@ -64,15 +64,16 @@ We tested two models on the datasets we have made.
 \begin{enumerate}
 \item pure.fc
 
-	This model has just one fully connected layer.
-
-	ToDo: Hyperparameters
+	This model has just one fully connected layer. Suppose our input is just $1$-dimensional raw vector $x$, with weight matrix $W$ and bias vector $b$, the scores for the four tones are
+	\[
+		\text{score} = x \cdot W + b
+	\]
+	We use softmax loss and l$2$-norm regularization.
 
 \item cnn.fc
 
-	This model has one convolution layer followed by one fully connected layer.
+	This model has one convolution layer followed by one fully connected layer. In this model, we do not use pooling layer.
 
-	ToDo: Hyperparameters
 \end{enumerate}
 
 \section{Experiments}
@@ -108,6 +109,8 @@ number of epochs & $2000$ \\
 \begin{tabular}{|r|c|c|c|}
 \hline
  & value \\
+\hline
+number of channels & $64$ \\
 \hline
 regularization strength & $0.01$ \\
 \hline
