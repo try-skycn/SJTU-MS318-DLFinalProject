@@ -1,2 +1,0 @@
-# Tensorflow Speech Recognition
-
