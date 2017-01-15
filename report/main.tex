@@ -23,6 +23,8 @@ Our prior knowledge tells us that the tone recognition task only requires pitch 
 
 	This dataset is made by shift the beginning of ``f0'' feature to its first non-zero element. Then we pad $0$s at the end of the data to make its length be $160$ (since the longest data has length $157$).
 
+	ToDo: Fix this for data.shift.json
+
 	The dataset is saved in file ``shared data/data.f0.160.json''.
 \item data.linear
 
@@ -56,6 +58,70 @@ We tested two models on the datasets we have made.
 \end{enumerate}
 
 \section{Experiments}
+
+We tried each model on each dataset, implemented by each framework.
+
+\subsection{Hyperparameters}
+
+\begin{figure}[H]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+ & data.shift & data.linear & data.quad \\
+\hline
+batch size & $10$ & $10$ & $10$ \\
+\hline
+learning rate & $2\times10^{-5}$ & $2\times10^{-5}$ & $2\times10^{-5}$\\
+\hline
+learning rate decay & N/A & N/A & N/A \\
+\hline
+number of epochs & $2000$ & $2000$ & $2000$ \\
+\hline
+\end{tabular}
+\caption{Hyperparameters settings for ``pure.fc'' model on each dataset.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+ & data.shift & data.linear & data.quad \\
+\hline
+batch size & $10$ & $10$ & $10$ \\
+\hline
+learning rate & $2\times10^{-5}$ & $2\times10^{-5}$ & $2\times10^{-5}$\\
+\hline
+learning rate decay & N/A & N/A & N/A \\
+\hline
+number of epochs & $2000$ & $2000$ & $2000$ \\
+\hline
+\end{tabular}
+\caption{Hyperparameters settings for ``cnn.fc'' model on each dataset.}
+\end{figure}
+
+\subsection{Experiments result}
+
+Now we show the performance and time consumption.
+
+\begin{figure}[H]
+\centering
+\begin{tabular}{|r|r|c|c|c|}
+\hline
+ & & data.shift & data.linear & data.quad \\
+\hline
+pure.fc & training set accuracy & \\
+ & test set accuracy & \\
+ & test\_new set accuracy & \\
+ & time & \\
+\hline
+cnn.fc & training set accuracy & \\
+ & test set accuracy & \\
+ & test\_new set accuracy & \\
+ & time & \\
+\hline
+\end{tabular}
+\caption{Performance and time consumption.}
+\end{figure}
 
 \section{Conclusion}
 
