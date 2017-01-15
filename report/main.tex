@@ -54,30 +54,35 @@ The process above is good for the level tone, the rising tone and the falling to
 Finally, we use moving average with a window of size $5$ frames to further smooth data. Moving averaging can not only remove the random error points but also keep the stepped transition between two smooth periods.
 
 \subsection{Data Expansion}
-By here, we have already get a denoised \texttt{f0}. But they are not of the same length and it is annoying if we want to use them to train a normal fully connected neural network or convolutional neural network. We come up with three ways to expand the data into the same length.
+By here, we have already get a denoised \texttt{f0}. But they are not of the same length and it is annoying if we want to use them to train a normal fully connected neural network or convolutional neural network. We come up with three ways to expand the data into the same length. Three ways corresponding three different datasets. They are
 \begin{enumerate}
-\item data\_shift
+\item data.shift
 
-	This dataset is made by shift the beginning of ``f0'' feature to its first non-zero element. Then we pad $0$s at the end of the data to make its length be $160$ (since the longest data has length $157$).
+	This dataset is made by shift the beginning of smoothed \texttt{f0} feature to its first non-zero element. Then we pad $0$s at the end of the data to make its length be $128$.
 
-	ToDo: Fix this for data.shift.json
+	The dataset is saved in file ``shared data/data\_shift.json''.
+\item data.linear
 
-	The dataset is saved in file ``shared data/data.f0.160.json''.
-\item data\_linear
-
-	ToDo: Description of this dataset.
+	In this dataset, we use expand the dataset by linear interpretation. Suppose the smoothed \texttt{f0} feature has $N$ frames, we want to expand it to $N'$ frame data, then the missing data $f'_j$ between original smoothed \texttt{f0} data $f_{i}$ and $f_{i+1}$ should be
+	\[ f'_{j} =  (f_{i+1} - f_{i})\left(\frac{(j - 1)(N - 1)}{N' - 1}- i + 1\right) + f_i\]
+	and $f'_{1} = f_1$, $f'_{N'} = f_{N}$ should hold as boundary condition.
 
 	The dataset is saved in file ``shared data/data\_linear.json''.
 
-\item data\_quad
+\item data.quad
 	
-	ToDo: Description of this dataset.
+	Another way is using a quadratic function to fit the curve of smoothed \texttt{f0} feature. If the fit curve obtained by least square method is $g(x) = a + bx + cx^2$, then the missing data $f'_j$ between original smoothed \texttt{f0} data $f_{i}$ and $f_{i+1}$ should be scaled as
+\[ f'_{j} =  g[(j - 1) (N - 1) / (N' - 1)  + 1]\]
 
 	The dataset is saved in file ``shared data/data\_quad.json''.
 
 \end{enumerate}
 
 \subsection{Centralization}
+For \texttt{data.linear} and \texttt{data.quad} we subtract their mean in the last step. The reason we do not apply centralization on  \texttt{data.quad} is we pad zero at the end of the data and do not want that part contains any information. Up to now, we have finish the data preprocessing part.
+
+\subsection{Other Approaches}
+Admittedly, rule-based data processing always has some drawbacks and cannot denoising very well. Therefore we also tried some other approaches using deep learning technique. One of them is denoising autoencoder (DAE). This approach can provide us a robust feature extraction and generating more data so that we can do data augmentation. However in experiment we found that the noise of \texttt{f0} is not Gaussian and adding white noise cannot improve its robustness. We discard this way.
 
 \section{Models}
 
