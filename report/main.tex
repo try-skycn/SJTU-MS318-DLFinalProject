@@ -63,44 +63,44 @@ We tried each model on each dataset, implemented by each framework.
 \centering
 \begin{tabular}{|r|c|c|c|}
 \hline
- & data.shift & data.linear & data.quad \\
+ & value \\
 \hline
-regularization strength & $0.02$ & $0.02$ & $0.02$ \\
+regularization strength & $0.01$ \\
 \hline
-batch size & $10$ & $10$ & $10$ \\
+batch size & $10$ \\
 \hline
-optimizer & SGD & SGD & SGD \\
+optimizer & SGD \\
 \hline
-learning rate & $2\times10^{-5}$ & $2\times10^{-5}$ & $2\times10^{-5}$\\
+learning rate & $3\times10^{-5}$\\
 \hline
-learning rate decay & N/A & N/A & N/A \\
+learning rate decay & N/A \\
 \hline
-number of epochs & $2000$ & $2000$ & $2000$ \\
+number of epochs & $2000$ \\
 \hline
 \end{tabular}
-\caption{Hyperparameters settings for ``pure.fc'' model on each dataset.}
+\caption{Hyperparameters settings for ``pure.fc'' model.}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \begin{tabular}{|r|c|c|c|}
 \hline
- & data.shift & data.linear & data.quad \\
+ & value \\
 \hline
-regularization strength & $0.02$ & $0.02$ & $0.02$ \\
+regularization strength & $0.01$ \\
 \hline
-batch size & $10$ & $10$ & $10$ \\
+batch size & $10$ \\
 \hline
-optimizer & SGD & SGD & SGD \\
+optimizer & SGD \\
 \hline
-learning rate & $2\times10^{-5}$ & $2\times10^{-5}$ & $2\times10^{-5}$\\
+learning rate & $3\times10^{-5}$\\
 \hline
-learning rate decay & N/A & N/A & N/A \\
+learning rate decay & N/A \\
 \hline
-number of epochs & $2000$ & $2000$ & $2000$ \\
+number of epochs & $2000$ \\
 \hline
 \end{tabular}
-\caption{Hyperparameters settings for ``cnn.fc'' model on each dataset.}
+\caption{Hyperparameters settings for ``cnn.fc'' model.}
 \end{figure}
 
 \subsection{Experiments result}
@@ -153,10 +153,10 @@ cnn.fc & training set accuracy & \\
 \hline
  & & data.shift & data.linear & data.quad \\
 \hline
-pure.fc & training set accuracy & & $90.75\%$ \\
- & test set accuracy & & $95.00\%$ \\
- & test\_new set accuracy & & $93.42\%$ \\
- & time & & $72.98$s \\
+pure.fc & training set accuracy & & $91.00\%$ & $92.75\%$ \\
+ & test set accuracy & & $100.00\%$ & $100.00\%$ \\
+ & test\_new set accuracy & & $92.54\%$ & $92.98\%$ \\
+ & time & & $35.92$s & $34.87$s \\
 \hline
 cnn.fc & training set accuracy & \\
  & test set accuracy & \\
