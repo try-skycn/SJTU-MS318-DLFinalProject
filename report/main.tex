@@ -36,8 +36,8 @@ We only keep the non-zero part of \texttt{f0} after processing as the output of 
 
 \subsection{Smoothing}
 The extracted \texttt{f0} alway has some obvious double, half or random error point. We need to do further smoothing for offering better feature to the tone recognizer. Typically, we can use some approaches such as linear interpolation, moving average to make the frequencies varies smoothly. But those method cannot deal with the case that data containing continuous random error points which is quite common in our dataset. We use a search-based algorithm
-%\cite{tone:2000}
-to smooth the frequency data. In that paper, the author used this algorithm to decrease the recognition error rate by $40\%$. 
+%	\cite{tone:2000}
+	to smooth the frequency data. In that paper, the author used this algorithm to decrease the recognition error rate by $40\%$. 
 	
 We search from a smooth beginning of \texttt{f0} data, and adjust each data point in order. Let $f_1, f_2, \dots, f_{N}$ be the frequencies of $N$ continues frames. When we deal with the $i$-th data point $f_i$ we first deal with the case of double of half frequency. If 
 \[ |f_i / 2 - f_{i-1}| < C_1 \text{, then we let } f'_i = f_i / 2;\]
@@ -93,11 +93,12 @@ Admittedly, rule-based data processing always has some drawbacks and cannot deno
 
 \section{Models}
 
-We tested two models on the datasets we have made.
+\subsection{Models in Comparison}
+We tested two models on the three different datasets we have made for comparing their performance on {\bf Torch}, {\bf Theano} and {\bf Tensorflow}. These two models are
 \begin{enumerate}
 \item pure.fc
 
-	This model has just one fully connected layer. Suppose our input is just $1$-dimensional raw vector $x$, with weight matrix $W$ and bias vector $b$, the scores for the four tones are
+	{\bf Fully Connected Neural Networks}: This model has just one fully connected layer. Suppose our input is just $1$-dimensional raw vector $x$, with weight matrix $W$ and bias vector $b$, the scores for the four tones are
 	\[
 		\text{score} = x \cdot W + b
 	\]
@@ -105,127 +106,27 @@ We tested two models on the datasets we have made.
 
 \item cnn.fc
 
-	This model has one convolution layer with a 2-strided max-pooling layer followed by one fully connected layer.
+	{\bf Temporal Convolutional Neural Networks}: This model has one convolution layer with 64 kernels and 2-strided max-pooling layer followed by one fully connected layer. The input is one channel one-dimensional data and the output is its class index.
 
 \end{enumerate}
 
-\section{Experiments}
+\subsection{Other Models We Explored}
+In additional to those two simple models above, we also tried some complicated models. We implement these models in {\bf Torch}. You can find them in folder ``torch/extra''.
+\subsubsection{Attention-based Recurrent Neural Networks}
+Since we meet sequence data in this problem, we want to check whether RNN is suitable for this problem. We first tried an RNN of  hidden size 128 and it performs unstable. LSTM is also tried to achieve more stable performance. However, in experiment we find the generalization ability is very poor. The highest performance on \texttt{test\_new} is about 50\%.
 
-We tried each model on each dataset, implemented by each framework.
+We infer that the reason of poor generalization ability maybe lies on that the simple RNN or LSTM does not catch the history information well. Therefore we try to add the attention mechanism.
 
-\subsection{Hyperparameters}
+Since it is a ``Sequence to One'' problem, the design of attention could be very easy, just the weighted average of hidden layers at different time instance. 
 
-\begin{figure}[H]
-\centering
-\begin{tabular}{|r|c|c|c|}
-\hline
- & value \\
-\hline
-regularization strength & $0.01$ \\
-\hline
-batch size & $10$ \\
-\hline
-optimizer & SGD \\
-\hline
-learning rate & $3\times10^{-5}$\\
-\hline
-learning rate decay & N/A \\
-\hline
-number of epochs & $2000$ \\
-\hline
-\end{tabular}
-\caption{Hyperparameters settings for ``pure.fc'' model.}
-\end{figure}
+\[ a = \sum_{t = 1}^{T} w_{t} h_t, \text{ and } w_{t} = \frac{exp(f(h_t))}{\sum_{k = 1}^{T}exp(f(h_t))}\]
+where $a$ is the attention output, and $f$ is a vector-to-scaler function trained as a perceptron. Using this model, we can achieve accuracy $96.12\%$ on \texttt{train}, $100.00\%$ on  \texttt{test} and $86.40$\% on \texttt{test\_new}\footnote{This result obtained by attention-based lstm of hidden size 128 with one layer fully connected layer of size 64.}.
 
-\begin{figure}[H]
-\centering
-\begin{tabular}{|r|c|c|c|}
-\hline
- & value \\
-\hline
-filter size & $3$ \\
-\hline
-number of channels & $64$ \\
-\hline
-regularization strength & $0.002$ \\
-\hline
-batch size & $10$ \\
-\hline
-optimizer & SGD \\
-\hline
-learning rate & $1\times10^{-4}$\\
-\hline
-learning rate decay & N/A \\
-\hline
-number of epochs & $400$ \\
-\hline
-\end{tabular}
-\caption{Hyperparameters settings for ``cnn.fc'' model.}
-\end{figure}
+\subsubsection{Temporal CNN + Attention-based LSTM}
+The Attention-based Recurrent Neural Network has two obvious shortcomings: 1) Too slow. The input sequence is of length $128$ and it will cost very long time to train LSTM in one epoch. 2) Low ability of feature extraction. To solve this two problem, we tried to add an convolutional layer with pooling layer before the data flows into attention-based LSTM. Because of convolutional layer it can extract more useful information from input data, and because of pooling layer the input sequences to the LSTM are much shorter then speed up the training process.
+We use a convolutional layer with 4 $4\times 1$ kernels and a pooling layer of size $4 \times 1$ and $4$-strided. This model can steadily perform an accuracy of $91.22$\% and even sometimes higher on \texttt{test\_new}.
 
-\subsection{Experiments result}
-
-Now we show the performance and time consumption. For time consumption, we started $10$ experiments for every model on every dataset, and took the mean and standard variance of the time consumption.
-
-\begin{figure}[H]
-\centering
-\begin{tabular}{|r|r|c|c|c|}
-\hline
- & & data.shift & data.linear & data.quad \\
-\hline
-pure.fc & training set accuracy & 74.50\% & 98.00\% & 96.75\% \\
- & test set accuracy & 74.00\% & \textbf{100.00\%} & 95.00\% \\
- & test\_new set accuracy & 57.46\% & \textbf{94.74}\% & 93.42\%\\
- & time & $21.58 \pm 2.13$ s & $20.87 \pm 0.87$ s & $20.79 \pm 0.84$ s\\
-\hline
-cnn.fc & training set accuracy & 93.00\% & 98.00\% &97.75\%\\
- & test set accuracy & 95.00\% &\textbf{100\%} &\textbf{100\%}\\
- & test\_new set accuracy & 63.15\% & 89.04\% &87.28\%\\
- & time & $34.14 \pm 0.28$s & $34.77 \pm 3.67$s & $34.76 \pm 2.39$s\\
-\hline
-\end{tabular}
-\caption{Performance and time consumption on Torch.}
-\end{figure}
-
-\begin{figure}[H]
-\centering
-\begin{tabular}{|r|r|c|c|c|}
-\hline
- & & data.shift & data.linear & data.quad \\
-\hline
-pure.fc & training set accuracy & $85.50\%$ & $93.50\%$ & $93.75\%$ \\
- & test set accuracy & $77.50\%$ & $\mathbf{100\%}$ & $\mathbf{100.00\%}$ \\
- & test\_new set accuracy & $57.46\%$ & $93.86\%$ & $93.86\%$ \\
- & time & $22.60\pm0.22$s & $23.45\pm0.43$s & $23.28\pm0.31$s \\
-\hline
-cnn.fc & training set accuracy & $87.5\%$ & $95.25\%$ & $95.50\%$ \\
- & test set accuracy & $85.00\%$ & $\mathbf{100.00\%}$ & $100.00\%$ \\
- & test\_new set accuracy & $56.58\%$ & $94.74\%$ & $94.30\%$ \\
- & time & $36.03\pm0.37$s & $35.83\pm0.16$s & $35.89\pm0.87$s\\
-\hline
-\end{tabular}
-\caption{Performance and time consumption on Theano.}
-\end{figure}
-
-\begin{figure}[H]
-\centering
-\begin{tabular}{|r|r|c|c|c|}
-\hline
- & & data.shift & data.linear & data.quad \\
-\hline
-pure.fc & training set accuracy & $85.25\%$ & $91.00\%$ & $92.75\%$ \\
- & test set accuracy & $80.00\%$ & $\mathbf{100.00\%}$ & $\mathbf{100.00\%}$ \\
- & test\_new set accuracy & $55.26\%$ & $92.54\%$ & $92.98\%$ \\
- & time & $34.45\pm0.95$s & $35.39\pm1.02$s & $37.71\pm1.77$s \\
-\hline
-cnn.fc & training set accuracy & $84.75\%$ & $93.25\%$ & $90.25\%$ \\
- & test set accuracy & $70.00\%$ & $90.00\%$ & $95.00\%$ \\
- & test\_new set accuracy & $54.82\%$ & $90.35\%$ & $\mathbf{94.74\%}$ \\
- & time & $30.18\pm2.33$s & $34.44\pm1.35$s & $37.21\pm4.39$s \\
-\hline
-\end{tabular}
-\caption{Performance and time consumption on Tensorflow.}
-\end{figure}
+\section{Experiments}We tried each model on each dataset, implemented by each framework.Note that for time consumption, we ran each program for ten times, and then calculate its mean and standard deviation.The CPU is Intel Xeon E3-1230 V2 @ 3.3GHz.\subsection{Hyperparameters}\begin{figure}[H]\centering\begin{tabular}{|r|c|c|c|}\hline & value \\\hlineregularization strength & $0.01$ \\\hlinebatch size & $10$ \\\hlineoptimizer & SGD \\\hlinelearning rate & $3\times10^{-5}$\\\hlinelearning rate decay & N/A \\\hlinenumber of epochs & $2000$ \\\hline\end{tabular}\caption{Hyperparameters settings for ``pure.fc'' model.}\end{figure}\begin{figure}[H]\centering\begin{tabular}{|r|c|c|c|}\hline & value \\\hlinefilter size & $3$ \\\hlinenumber of channels & $64$ \\\hlineregularization strength & $0.002$ \\\hlinebatch size & $10$ \\\hlineoptimizer & SGD \\\hlinelearning rate & $1\times10^{-4}$\\\hlinelearning rate decay & N/A \\\hlinenumber of epochs & $400$ \\\hline\end{tabular}\caption{Hyperparameters settings for ``cnn.fc'' model.}\end{figure}\subsection{Experiments result}Now we show the performance and time consumption.\begin{figure}[H]\centering\begin{tabular}{|r|r|c|c|c|}\hline & & Tensorflow & Torch & Theano \\\hlinepure.fc & training set accuracy & $85.25\%$ & $74.50\%$ & $\bm{85.50}\%$ \\ & test set accuracy & $\bm{80.00}\%$ & $74.00\%$ & $77.50\%$ \\ & test\_new set accuracy & $55.26\%$ & $\bm{57.46}\%$ & $\bm{57.46}\%$ \\ & time & $34.45\pm0.95$s & $\bm{21.58\pm2.13}$s & $22.60\pm0.22$s \\\hlinecnn.fc & training set accuracy & $84.75\%$ & $\bm{93.00}\%$ & $87.50\%$ \\ & test set accuracy & $70.00\%$ & $\bm{95.00}\%$ & $85.00\%$ \\ & test\_new set accuracy & $54.82\%$ & $\bm{63.15}\%$ & $56.58\%$ \\ & time & $\bm{30.18\pm2.33}$s & $34.14\pm0.28$s & $36.03\pm0.37$s \\\hline\end{tabular}\caption{Performance and time consumption on data.shift.}\end{figure}\begin{figure}[H]\centering\begin{tabular}{|r|r|c|c|c|}\hline & & Tensorflow & Torch & Theano \\\hlinepure.fc & training set accuracy & 91.00\% & $\bm{98.00\%}$ & 93.50\% \\ & test set accuracy & $\bm{100.00\%}$ & $\bm{100.00\%}$ & $\bm{100.00\%}$ \\ & test\_new set accuracy & 92.54\% & $\bm{94.74}$ \% & 93.86\%\\ & time & $35.39 \pm 1.02$ s & $\bm{20.87 \pm 0.87}$ s & 23.45 $\pm$ 0.16 s \\\hlinecnn.fc & training set accuracy & 93.25\% & $\bm{98.00\%}$ & 95.25\% \\ & test set accuracy & 90.00\% & $\bm{100.00\%}$ & $\bm{100.00\%}$ \\ & test\_new set accuracy & 90.35\% & 89.04\% & $\bm{94.74}$ \% \\ & time & $\bm{34.44 \pm 1.35} s$ & $34.77 \pm 3.67$s & 35.83 $\pm$ 0.15 s\\\hline\end{tabular}\caption{Performance and time consumption on data.linear.}\end{figure}\begin{figure}[H]\centering\begin{tabular}{|r|r|c|c|c|}\hline & & Tensorflow & Torch & Theano \\\hlinepure.fc & training set accuracy & $92.75\%$ & $\bm{96.75}$\% & 93.75\% \\ & test set accuracy & $\bm{100.00}\%$ & 95.00\% & $\bm{100.00}$ \% \\ & test\_new set accuracy & $92.98\%$ & 93.42\% & $\bm{93.86}$ \% \\ & time & $37.71\pm1.77$s & $\bm{20.79 \pm 0.84}$ s & $23.28 \pm 0.32$s\\\hlinecnn.fc & training set accuracy & $90.25\%$ & $\bm{97.75}$\% & 95.50 \% \\ & test set accuracy & $95.00\%$ & $\bm{100.00}$ \% & $\bm{100.00}$ \% \\ & test\_new set accuracy & $\bm{94.74}\%$ & 87.28 \% & 94.30 \% \\ & time & $37.21\pm4.39$s & $\bm{34.76 \pm 2.39}$ s & $ 35.89 \pm 0.87$ s\\\hline\end{tabular}\caption{Performance and time consumption on data.quad.}\end{figure}
 
 \section{Conclusion}
 
@@ -245,9 +146,9 @@ And if we focus only on ``data.shift'' dataset, we can see that there are huge g
 
 But compare this result with other preprocessed dataset, we can see the effectiveness of preprocessing.
 
-% \section{References}
-% \bibliography{main}
-% 
-% \bibliographystyle{main}
+\section{References}
+\bibliography{main}
+
+\bibliographystyle{main}
 
 \end{document}
