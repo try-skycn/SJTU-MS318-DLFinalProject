@@ -10,17 +10,18 @@ cmd:text('Options:')
 cmd:option('--load_mode', 'linear', 'linear | quad | shift')
 cmd:option('--learningRate', 0.005, 'learning rate at t=0')
 cmd:option('--minLR', 0.00001, 'minimum learning rate')
-cmd:option('--saturateEpoch', 100, 'epoch at which linear decayed LR will reach minLR')
-cmd:option('--momentum', 0.9, 'momentum')
+cmd:option('--saturateEpoch', 2000, 'epoch at which linear decayed LR will reach minLR')
+cmd:option('--momentum', 0.0, 'momentum')
 cmd:option('--maxOutNorm', -1, 'max norm each layers output neuron weights')
 cmd:option('--cutoffNorm', -1, 'max l2-norm of contatenation of all gradParam tensors')
-cmd:option('--batchSize', 40, 'number of examples per batch')
+cmd:option('--batchSize', 10, 'number of examples per batch')
 cmd:option('--cuda', false, 'use CUDA')
 cmd:option('--useDevice', 1, 'sets the device (GPU) to use')
-cmd:option('--maxEpoch', 300, 'maximum number of epochs to run')
-cmd:option('--maxTries', 100, 'maximum number of epochs to try to find a better local minima for early-stopping')
+cmd:option('--maxEpoch', 2000, 'maximum number of epochs to run')
+cmd:option('--maxTries', 5, 'maximum number of epochs to try to find a better local minima for early-stopping')
 cmd:option('--transfer', 'ReLU', 'activation function')
 cmd:option('--uniform', -1, 'initialize parameters using uniform distribution between -uniform and uniform. -1 means default initialization')
+cmd:option('--gaussian', 0.2132007164, 'initialize parameters using gaussian distribution between -uniform and uniform. -1 means default initialization')
 cmd:option('--progress', false, 'print progress bar')
 cmd:option('--silent', false, 'dont print anything to stdout')
 
@@ -87,18 +88,24 @@ else
 	if opt.dropout > 0 then
 		net:add(nn.Dropout(opt.dropout))
 	end
-	net:add(nn.Linear(opt.inputC * opt.maxLen, opt.hiddenSize))
+	-- net:add(nn.Linear(opt.inputC * opt.maxLen, opt.hiddenSize))
+	net:add(nn.Linear(opt.inputC * opt.maxLen, 4))
 	-- net:add(nn.BatchNormalization(opt.hiddenSize))
 	net:add(nn[opt.transfer]())
 	if opt.dropout > 0 then
 		net:add(nn.Dropout(opt.dropout))
 	end
-	net:add(nn.Linear(opt.hiddenSize, 4))
+	-- net:add(nn.Linear(opt.hiddenSize, 4))
 	net:add(nn.LogSoftMax())
 
 	if opt.uniform > 0 then
 		for k,param in ipairs(net:parameters()) do
 			param:uniform(-opt.uniform, opt.uniform)
+		end
+	end
+	if opt.gaussian > 0 then
+		for k,param in ipairs(net:parameters()) do
+			param:copy(torch.randn(param:size()):mul(opt.gaussian))
 		end
 	end
 end

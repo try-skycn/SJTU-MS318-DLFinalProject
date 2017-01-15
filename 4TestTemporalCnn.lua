@@ -8,17 +8,17 @@ cmd:text('Example:')
 cmd:text('$> th TemporalCnn.lua --learningRate 0.01 <')
 cmd:text('Options:')
 cmd:option('--load_mode', 'linear', 'linear | quad | shift')
-cmd:option('--learningRate', 0.005, 'learning rate at t=0')
+cmd:option('--learningRate', 0.01, 'learning rate at t=0')
 cmd:option('--minLR', 0.00001, 'minimum learning rate')
 cmd:option('--saturateEpoch', 100, 'epoch at which linear decayed LR will reach minLR')
 cmd:option('--momentum', 0.9, 'momentum')
 cmd:option('--maxOutNorm', -1, 'max norm each layers output neuron weights')
 cmd:option('--cutoffNorm', -1, 'max l2-norm of contatenation of all gradParam tensors')
-cmd:option('--batchSize', 40, 'number of examples per batch')
+cmd:option('--batchSize', 5, 'number of examples per batch')
 cmd:option('--cuda', false, 'use CUDA')
 cmd:option('--useDevice', 1, 'sets the device (GPU) to use')
 cmd:option('--maxEpoch', 300, 'maximum number of epochs to run')
-cmd:option('--maxTries', 100, 'maximum number of epochs to try to find a better local minima for early-stopping')
+cmd:option('--maxTries', 50, 'maximum number of epochs to try to find a better local minima for early-stopping')
 cmd:option('--transfer', 'ReLU', 'activation function')
 cmd:option('--uniform', -1, 'initialize parameters using uniform distribution between -uniform and uniform. -1 means default initialization')
 cmd:option('--progress', false, 'print progress bar')
@@ -38,7 +38,7 @@ cmd:option('--hiddenSize', 64, 'umber of hidden units used in FC')
 
 --[[ data ]]--
 cmd:option('--dataset', 'Tone', 'dataset name: Tone')
-cmd:option('--maxLen', 128, 'length of input data')
+cmd:option('--maxLen', 64, 'length of input data')
 cmd:option('--trainEpochSize', 800, 'number of train examples seen between each epoch')
 cmd:option('--validEpochSize', -1, 'number of valid examples used for early stopping and cross-validation')
 cmd:option('--noTest', false, 'dont propagate through the test set')
@@ -73,21 +73,21 @@ if opt.xpPath ~= '' then
 	xp.opt.progress = opt.progress
 	opt = xp.opt
 else
-	-- local nOutputFrame = (opt.maxLen - opt.convkw) / opt.convdw + 1
+	local nOutputFrame = (opt.maxLen - opt.convkw) / opt.convdw + 1
 	-- local nOutputFrame = (nOutputFrame - opt.convkw) / opt.convdw + 1
-	-- local nOutputFrame = (nOutputFrame - opt.poolkw) / opt.pooldw + 1
+	local nOutputFrame = (nOutputFrame - opt.poolkw) / opt.pooldw + 1
 
 	net = nn.Sequential()
-	-- net:add(nn.TemporalConvolution(opt.inputC, opt.outputC, opt.convkw, opt.convdw))
-	-- net:add(nn[opt.transfer]())
+	net:add(nn.TemporalConvolution(opt.inputC, opt.outputC, opt.convkw, opt.convdw))
+	net:add(nn[opt.transfer]())
 	-- net:add(nn.TemporalConvolution(opt.outputC, opt.outputC, opt.convkw, opt.convdw))
 	-- net:add(nn[opt.transfer]())
-	-- net:add(nn.TemporalMaxPooling(opt.poolkw, opt.pooldw))
-	net:add(nn.View(opt.inputC * opt.maxLen))
+	net:add(nn.TemporalMaxPooling(opt.poolkw, opt.pooldw))
+	net:add(nn.View(opt.outputC * nOutputFrame))
 	if opt.dropout > 0 then
 		net:add(nn.Dropout(opt.dropout))
 	end
-	net:add(nn.Linear(opt.inputC * opt.maxLen, opt.hiddenSize))
+	net:add(nn.Linear(opt.outputC * nOutputFrame, opt.hiddenSize))
 	-- net:add(nn.BatchNormalization(opt.hiddenSize))
 	net:add(nn[opt.transfer]())
 	if opt.dropout > 0 then
