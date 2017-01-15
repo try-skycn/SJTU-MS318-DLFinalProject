@@ -165,7 +165,7 @@ number of epochs & $400$ \\
 
 \subsection{Experiments result}
 
-Now we show the performance and time consumption.
+Now we show the performance and time consumption. For time consumption, we started $10$ experiments for every model on every dataset, and took the mean and standard variance of the time consumption.
 
 \begin{figure}[H]
 \centering
@@ -235,11 +235,15 @@ From the experiment results, we can see that \textbf{Torch} is fastest when we a
 
 \subsection{Accuracy}
 
-From the experiment results we can see that whatever model we apply, we get the worst accuracy performance on ``data.shift'' dataset, no matter it is training, test or test new dataset. This means that, for this perticular problem, it is very important to preprocess the data.
+The best accuracy preformance on test new dataset is $94.74\%$, and the best accuracy performance on test dataset is $100\%$. This result could be caused by the cleaness of test dataset. There might be some outliers inside test new dataset.
 
 \subsection{Analysis}
 
-If we focus only on ``data.shift'' dataset, we can see that there are huge gaps between training accuracy or test accuracy and test new accuracy. This could mean a terrible overfitting problem. Since there are only $400$ training samples, this problem is understandable. But compare this result with other preprocessed dataset, we can see the effectiveness of preprocessing.
+From the experiment results we can see that whatever model we apply, we get the worst accuracy performance on ``data.shift'' dataset, no matter it is training, test or test new dataset.
+
+And if we focus only on ``data.shift'' dataset, we can see that there are huge gaps between training accuracy or test accuracy and test new accuracy. This could mean a terrible overfitting problem. Since there are only $400$ training samples, this problem is understandable.
+
+But compare this result with other preprocessed dataset, we can see the effectiveness of preprocessing.
 
 \section{References}
 \bibliography{main}
