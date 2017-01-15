@@ -264,16 +264,16 @@ function make_dataset(name, mode)
 --             resized_collection.data[{j, {}, i}]:div(std)
 --         end
 --     end
---     for i = 1, 2 do
---         for j = 1, collection:size() do
---             local mean = resized_collection.data[{j, {}, i}]:mean()
+    for i = 1, 2 do
+        for j = 1, collection:size() do
+            local mean = resized_collection.data[{j, {}, i}]:mean()
+            resized_collection.data[{j, {}, i}]:csub(mean)
+--             local mean = resized_collection.data[{j, {}, i}][-1]
 --             resized_collection.data[{j, {}, i}]:csub(mean)
--- --             local mean = resized_collection.data[{j, {}, i}][-1]
--- --             resized_collection.data[{j, {}, i}]:csub(mean)
--- --             local std = resized_collection.data[{{}, {}, i}]:std()
--- --             resized_collection.data[{{}, {}, i}]:div(std)
---         end
---     end
+--             local std = resized_collection.data[{{}, {}, i}]:std()
+--             resized_collection.data[{{}, {}, i}]:div(std)
+        end
+    end
     for i = 1, 2 do
         local std = resized_collection.data[{{}, {}, i}]:std()
         resized_collection.data[{{}, {}, i}]:div(std)
@@ -286,9 +286,9 @@ function make_dataset(name, mode)
     print("dataset "..name.." has been constructed!")
     return resized_collection, coef
 end
-trainset, tarincoef = make_dataset('train', 'shift')
-testset, testcoef = make_dataset('test', 'shift')
-newtestset, newtestcoef = make_dataset('test_new', 'shift')
+trainset, tarincoef = make_dataset('train', 'linear')
+testset, testcoef = make_dataset('test', 'linear')
+newtestset, newtestcoef = make_dataset('test_new', 'linear')
 function toTable(vec)
     local tmp = {}
     for i = 1, (#vec)[1] do
