@@ -1,10 +1,11 @@
 import numpy as np
 import tensorflow as tf
 
-def dense(X, dim, weight_scale=0.01, reg_list=None, actfn=tf.nn.relu):
+def dense(X, dim, reg_list=None, actfn=tf.nn.relu):
 	_, idim = X.get_shape().as_list()
 	
-	W = tf.get_variable(shape=(idim, dim), initializer=tf.random_uniform_initializer(minval=-6.0/(idim+dim), maxval=6.0/(idim+dim)), dtype=tf.float32, name="W")
+	weight_scale = np.sqrt(6.0/(idim+dim))
+	W = tf.get_variable(shape=(idim, dim), initializer=tf.random_uniform_initializer(minval=-weight_scale, maxval=weight_scale), dtype=tf.float32, name="W")
 	b = tf.get_variable(shape=(dim, ), initializer=tf.zeros_initializer, dtype=tf.float32, name="b")
 	H = tf.matmul(X, W) + b
 	if actfn is not None:
@@ -36,7 +37,7 @@ class Model:
 			reg_list = []
 			
 			with tf.variable_scope('FullyConnect'):
-				Y = dense(X, 4, actfn=None)
+				Y = dense(X, 4, reg_list=reg_list, actfn=None)
 			
 			if len(reg_list) == 0:
 				reg_loss = 0.0

@@ -9,7 +9,7 @@ class Data:
 			feature, label = [], []
 			for x in self.data[k]:
 				feature.append(x['input'])
-				label.append(x['label'])
+				label.append(x['label'] - 1)
 			self.data[k] = (np.array(feature), np.array(label))
 		self.settings = {
 			"width": self.data["train"][0].shape[1]
