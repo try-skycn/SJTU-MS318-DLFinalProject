@@ -126,7 +126,125 @@ where $a$ is the attention output, and $f$ is a vector-to-scaler function traine
 The Attention-based Recurrent Neural Network has two obvious shortcomings: 1) Too slow. The input sequence is of length $128$ and it will cost very long time to train LSTM in one epoch. 2) Low ability of feature extraction. To solve this two problem, we tried to add an convolutional layer with pooling layer before the data flows into attention-based LSTM. Because of convolutional layer it can extract more useful information from input data, and because of pooling layer the input sequences to the LSTM are much shorter then speed up the training process.
 We use a convolutional layer with 4 $4\times 1$ kernels and a pooling layer of size $4 \times 1$ and $4$-strided. This model can steadily perform an accuracy of $91.22$\% and even sometimes higher on \texttt{test\_new}.
 
-\section{Experiments}We tried each model on each dataset, implemented by each framework.Note that for time consumption, we ran each program for ten times, and then calculate its mean and standard deviation.The CPU is Intel Xeon E3-1230 V2 @ 3.3GHz.\subsection{Hyperparameters}\begin{figure}[H]\centering\begin{tabular}{|r|c|c|c|}\hline & value \\\hlineregularization strength & $0.01$ \\\hlinebatch size & $10$ \\\hlineoptimizer & SGD \\\hlinelearning rate & $3\times10^{-5}$\\\hlinelearning rate decay & N/A \\\hlinenumber of epochs & $2000$ \\\hline\end{tabular}\caption{Hyperparameters settings for ``pure.fc'' model.}\end{figure}\begin{figure}[H]\centering\begin{tabular}{|r|c|c|c|}\hline & value \\\hlinefilter size & $3$ \\\hlinenumber of channels & $64$ \\\hlineregularization strength & $0.002$ \\\hlinebatch size & $10$ \\\hlineoptimizer & SGD \\\hlinelearning rate & $1\times10^{-4}$\\\hlinelearning rate decay & N/A \\\hlinenumber of epochs & $400$ \\\hline\end{tabular}\caption{Hyperparameters settings for ``cnn.fc'' model.}\end{figure}\subsection{Experiments result}Now we show the performance and time consumption.\begin{figure}[H]\centering\begin{tabular}{|r|r|c|c|c|}\hline & & Tensorflow & Torch & Theano \\\hlinepure.fc & training set accuracy & $85.25\%$ & $74.50\%$ & $\bm{85.50}\%$ \\ & test set accuracy & $\bm{80.00}\%$ & $74.00\%$ & $77.50\%$ \\ & test\_new set accuracy & $55.26\%$ & $\bm{57.46}\%$ & $\bm{57.46}\%$ \\ & time & $34.45\pm0.95$s & $\bm{21.58\pm2.13}$s & $22.60\pm0.22$s \\\hlinecnn.fc & training set accuracy & $84.75\%$ & $\bm{93.00}\%$ & $87.50\%$ \\ & test set accuracy & $70.00\%$ & $\bm{95.00}\%$ & $85.00\%$ \\ & test\_new set accuracy & $54.82\%$ & $\bm{63.15}\%$ & $56.58\%$ \\ & time & $\bm{30.18\pm2.33}$s & $34.14\pm0.28$s & $36.03\pm0.37$s \\\hline\end{tabular}\caption{Performance and time consumption on data.shift.}\end{figure}\begin{figure}[H]\centering\begin{tabular}{|r|r|c|c|c|}\hline & & Tensorflow & Torch & Theano \\\hlinepure.fc & training set accuracy & 91.00\% & $\bm{98.00\%}$ & 93.50\% \\ & test set accuracy & $\bm{100.00\%}$ & $\bm{100.00\%}$ & $\bm{100.00\%}$ \\ & test\_new set accuracy & 92.54\% & $\bm{94.74}$ \% & 93.86\%\\ & time & $35.39 \pm 1.02$ s & $\bm{20.87 \pm 0.87}$ s & 23.45 $\pm$ 0.16 s \\\hlinecnn.fc & training set accuracy & 93.25\% & $\bm{98.00\%}$ & 95.25\% \\ & test set accuracy & 90.00\% & $\bm{100.00\%}$ & $\bm{100.00\%}$ \\ & test\_new set accuracy & 90.35\% & 89.04\% & $\bm{94.74}$ \% \\ & time & $\bm{34.44 \pm 1.35} s$ & $34.77 \pm 3.67$s & 35.83 $\pm$ 0.15 s\\\hline\end{tabular}\caption{Performance and time consumption on data.linear.}\end{figure}\begin{figure}[H]\centering\begin{tabular}{|r|r|c|c|c|}\hline & & Tensorflow & Torch & Theano \\\hlinepure.fc & training set accuracy & $92.75\%$ & $\bm{96.75}$\% & 93.75\% \\ & test set accuracy & $\bm{100.00}\%$ & 95.00\% & $\bm{100.00}$ \% \\ & test\_new set accuracy & $92.98\%$ & 93.42\% & $\bm{93.86}$ \% \\ & time & $37.71\pm1.77$s & $\bm{20.79 \pm 0.84}$ s & $23.28 \pm 0.32$s\\\hlinecnn.fc & training set accuracy & $90.25\%$ & $\bm{97.75}$\% & 95.50 \% \\ & test set accuracy & $95.00\%$ & $\bm{100.00}$ \% & $\bm{100.00}$ \% \\ & test\_new set accuracy & $\bm{94.74}\%$ & 87.28 \% & 94.30 \% \\ & time & $37.21\pm4.39$s & $\bm{34.76 \pm 2.39}$ s & $ 35.89 \pm 0.87$ s\\\hline\end{tabular}\caption{Performance and time consumption on data.quad.}\end{figure}
+\section{Experiments}
+
+We tried each model on each dataset, implemented by each framework.
+Note that for time consumption, we ran each program for ten times, and then calculate its mean and standard deviation.
+The CPU is Intel Xeon E3-1230 V2 @ 3.3GHz.
+
+\subsection{Hyperparameters}
+
+\begin{figure}[H]
+\centering
+\begin{tabular}{|r|c|c|c|}
+\hline
+ & value \\
+\hline
+regularization strength & $0.01$ \\
+\hline
+batch size & $10$ \\
+\hline
+optimizer & SGD \\
+\hline
+learning rate & $3\times10^{-5}$\\
+\hline
+learning rate decay & N/A \\
+\hline
+number of epochs & $2000$ \\
+\hline
+\end{tabular}
+\caption{Hyperparameters settings for ``pure.fc'' model.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{tabular}{|r|c|c|c|}
+\hline
+ & value \\
+\hline
+filter size & $3$ \\
+\hline
+number of channels & $64$ \\
+\hline
+regularization strength & $0.002$ \\
+\hline
+batch size & $10$ \\
+\hline
+optimizer & SGD \\
+\hline
+learning rate & $1\times10^{-4}$\\
+\hline
+learning rate decay & N/A \\
+\hline
+number of epochs & $400$ \\
+\hline
+\end{tabular}
+\caption{Hyperparameters settings for ``cnn.fc'' model.}
+\end{figure}
+
+\subsection{Experiments result}
+
+Now we show the performance and time consumption.
+
+\begin{figure}[H]
+\centering
+\begin{tabular}{|r|r|c|c|c|}
+\hline
+ & & Tensorflow & Torch & Theano \\
+\hline
+pure.fc & training set accuracy & $85.25\%$ & $74.50\%$ & $\bm{85.50}\%$ \\
+ & test set accuracy & $\bm{80.00}\%$ & $74.00\%$ & $77.50\%$ \\
+ & test\_new set accuracy & $55.26\%$ & $\bm{57.46}\%$ & $\bm{57.46}\%$ \\
+ & time & $34.45\pm0.95$s & $\bm{21.58\pm2.13}$s & $22.60\pm0.22$s \\
+\hline
+cnn.fc & training set accuracy & $84.75\%$ & $\bm{93.00}\%$ & $87.50\%$ \\
+ & test set accuracy & $70.00\%$ & $\bm{95.00}\%$ & $85.00\%$ \\
+ & test\_new set accuracy & $54.82\%$ & $\bm{63.15}\%$ & $56.58\%$ \\
+ & time & $\bm{30.18\pm2.33}$s & $34.14\pm0.28$s & $36.03\pm0.37$s \\
+\hline
+\end{tabular}
+\caption{Performance and time consumption on data.shift.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{tabular}{|r|r|c|c|c|}
+\hline
+ & & Tensorflow & Torch & Theano \\
+\hline
+pure.fc & training set accuracy & 91.00\% & $\bm{98.00\%}$ & 93.50\% \\
+ & test set accuracy & $\bm{100.00\%}$ & $\bm{100.00\%}$ & $\bm{100.00\%}$ \\
+ & test\_new set accuracy & 92.54\% & $\bm{94.74}$ \% & 93.86\%\\
+ & time & $35.39 \pm 1.02$ s & $\bm{20.87 \pm 0.87}$ s & 23.45 $\pm$ 0.16 s \\
+\hline
+cnn.fc & training set accuracy & 93.25\% & $\bm{98.00\%}$ & 95.25\% \\
+ & test set accuracy & 90.00\% & $\bm{100.00\%}$ & $\bm{100.00\%}$ \\
+ & test\_new set accuracy & 90.35\% & 89.04\% & $\bm{94.74}$ \% \\
+ & time & $\bm{34.44 \pm 1.35} s$ & $34.77 \pm 3.67$s & 35.83 $\pm$ 0.15 s\\
+\hline
+\end{tabular}
+\caption{Performance and time consumption on data.linear.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{tabular}{|r|r|c|c|c|}
+\hline
+ & & Tensorflow & Torch & Theano \\
+\hline
+pure.fc & training set accuracy & $92.75\%$ & $\bm{96.75}$\% & 93.75\% \\
+ & test set accuracy & $\bm{100.00}\%$ & 95.00\% & $\bm{100.00}$ \% \\
+ & test\_new set accuracy & $92.98\%$ & 93.42\% & $\bm{93.86}$ \% \\
+ & time & $37.71\pm1.77$s & $\bm{20.79 \pm 0.84}$ s & $23.28 \pm 0.32$s\\
+\hline
+cnn.fc & training set accuracy & $90.25\%$ & $\bm{97.75}$\% & 95.50 \% \\
+ & test set accuracy & $95.00\%$ & $\bm{100.00}$ \% & $\bm{100.00}$ \% \\
+ & test\_new set accuracy & $\bm{94.74}\%$ & 87.28 \% & 94.30 \% \\
+ & time & $37.21\pm4.39$s & $\bm{34.76 \pm 2.39}$ s & $ 35.89 \pm 0.87$ s\\
+\hline
+\end{tabular}
+\caption{Performance and time consumption on data.quad.}
+\end{figure}
 
 \section{Conclusion}
 
@@ -146,9 +264,9 @@ And if we focus only on ``data.shift'' dataset, we can see that there are huge g
 
 But compare this result with other preprocessed dataset, we can see the effectiveness of preprocessing.
 
-\section{References}
-\bibliography{main}
-
-\bibliographystyle{main}
+% \section{References}
+% \bibliography{main}
+% 
+% \bibliographystyle{main}
 
 \end{document}
