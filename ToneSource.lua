@@ -1,5 +1,6 @@
 require 'dp'
 require 'loader'
+local cjosn = require 'cjson'
 
 local Tone, DataSource = torch.class("dp.Tone", "dp.DataSource")
 Tone.isMnist = true
@@ -338,9 +339,10 @@ function Tone:loadData(name, mode)
         local tmpEngy = data[{{}, 2}][data[{{}, 2}]:gt(0.0)]:clone()
 
         -- smooth (refer to a paper)
+
         local tmpF0_prime = tmpF0:clone()
-        local c_1 = 0.3
-        local c_2 = 0.5
+        local c_1 = 0.32
+        local c_2 = 0.67
         -- half or double
         for j = 2, (#tmpF0)[1] do
             if math.abs(tmpF0[j] / 2 - tmpF0[j - 1]) < c_1 then 

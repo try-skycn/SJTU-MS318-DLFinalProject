@@ -84,6 +84,7 @@ else
 	-- local nOutputFrame = (nOutputFrame - opt.poolkw) / opt.pooldw + 1
 
 	net = nn.Sequential()
+	-- net:add(nn.WhiteNoise(0, 0.5))
 	net:add(nn.TemporalConvolution(opt.inputC, opt.outputC, opt.convkw, opt.convdw))
 	net:add(nn[opt.transfer]())
 	net:add(nn.TemporalMaxPooling(opt.poolkw, opt.pooldw))
