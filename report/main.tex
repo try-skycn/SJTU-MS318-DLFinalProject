@@ -93,11 +93,12 @@ Admittedly, rule-based data processing always has some drawbacks and cannot deno
 
 \section{Models}
 
-We tested two models on the datasets we have made.
+\subsection{Models in Comparison}
+We tested two models on the three different datasets we have made for comparing their performance on {\bf Torch}, {\bf Theano} and {\bf Tensorflow}. These two models are
 \begin{enumerate}
 \item pure.fc
 
-	This model has just one fully connected layer. Suppose our input is just $1$-dimensional raw vector $x$, with weight matrix $W$ and bias vector $b$, the scores for the four tones are
+	{\bf Fully Connected Neural Networks}: This model has just one fully connected layer. Suppose our input is just $1$-dimensional raw vector $x$, with weight matrix $W$ and bias vector $b$, the scores for the four tones are
 	\[
 		\text{score} = x \cdot W + b
 	\]
@@ -105,9 +106,25 @@ We tested two models on the datasets we have made.
 
 \item cnn.fc
 
-	This model has one convolution layer with a 2-strided max-pooling layer followed by one fully connected layer.
+	{\bf Temporal Convolutional Neural Networks}: This model has one convolution layer with 64 kernels and 2-strided max-pooling layer followed by one fully connected layer. The input is one channel one-dimensional data and the output is its class index.
 
 \end{enumerate}
+
+\subsection{Other Models We Explored}
+In additional to those two simple models above, we also tried some complicated models. We implement these models in {\bf Torch}. You can find them in folder ``torch/extra''.
+\subsubsection{Attention-based Recurrent Neural Networks}
+Since we meet sequence data in this problem, we want to check whether RNN is suitable for this problem. We first tried an RNN of  hidden size 128 and it performs unstable. LSTM is also tried to achieve more stable performance. However, in experiment we find the generalization ability is very poor. The highest performance on \texttt{test\_new} is about 50\%.
+
+We infer that the reason of poor generalization ability maybe lies on that the simple RNN or LSTM does not catch the history information well. Therefore we try to add the attention mechanism.
+
+Since it is a ``Sequence to One'' problem, the design of attention could be very easy, just the weighted average of hidden layers at different time instance. 
+
+\[ a = \sum_{t = 1}^{T} w_{t} h_t, \text{ and } w_{t} = \frac{exp(f(h_t))}{\sum_{k = 1}^{T}exp(f(h_t))}\]
+where $a$ is the attention output, and $f$ is a vector-to-scaler function trained as a perceptron. Using this model, we can achieve accuracy $96.12\%$ on \texttt{train}, $100.00\%$ on  \texttt{test} and $86.40$\% on \texttt{test\_new}\footnote{This result obtained by attention-based lstm of hidden size 128 with one layer fully connected layer of size 64.}.
+
+\subsubsection{Temporal CNN + Attention-based LSTM}
+The Attention-based Recurrent Neural Network has two obvious shortcomings: 1) Too slow. The input sequence is of length $128$ and it will cost very long time to train LSTM in one epoch. 2) Low ability of feature extraction. To solve this two problem, we tried to add an convolutional layer with pooling layer before the data flows into attention-based LSTM. Because of convolutional layer it can extract more useful information from input data, and because of pooling layer the input sequences to the LSTM are much shorter then speed up the training process.
+We use a convolutional layer with 4 $4\times 1$ kernels and a pooling layer of size $4 \times 1$ and $4$-strided. This model can steadily perform an accuracy of $91.22$\% and even sometimes higher on \texttt{test\_new}.
 
 \section{Experiments}
 
