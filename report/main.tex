@@ -105,7 +105,7 @@ We tested two models on the datasets we have made.
 
 \item cnn.fc
 
-	This model has one convolution layer followed by one fully connected layer. In this model, we do not use pooling layer.
+	This model has one convolution layer with a 2-strided max-pooling layer followed by one fully connected layer.
 
 \end{enumerate}
 
@@ -143,19 +143,21 @@ number of epochs & $2000$ \\
 \hline
  & value \\
 \hline
+filter size & $3$ \\
+\hline
 number of channels & $64$ \\
 \hline
-regularization strength & $0.01$ \\
+regularization strength & $0.002$ \\
 \hline
 batch size & $10$ \\
 \hline
 optimizer & SGD \\
 \hline
-learning rate & $3\times10^{-5}$\\
+learning rate & $1\times10^{-4}$\\
 \hline
 learning rate decay & N/A \\
 \hline
-number of epochs & $2000$ \\
+number of epochs & $400$ \\
 \hline
 \end{tabular}
 \caption{Hyperparameters settings for ``cnn.fc'' model.}
@@ -216,10 +218,10 @@ pure.fc & training set accuracy & $85.25\%$ & $91.00\%$ & $92.75\%$ \\
  & test\_new set accuracy & $55.26\%$ & $92.54\%$ & $92.98\%$ \\
  & time & $36.30$s & $35.92$s & $34.87$s \\
 \hline
-cnn.fc & training set accuracy & $86.25\%$ & $95.00\%$ & $95.75\%$ \\
- & test set accuracy & $77.50\%$ & $100.00\%$ & $100.00\%$ \\
- & test\_new set accuracy & $57.89\%$ & $86.40\%$ & $85.09\%$ \\
- & time & $153.01$s & $127.56$s & $127.99$s \\
+cnn.fc & training set accuracy & $84.75\%$ & $93.25\%$ & $90.25\%$ \\
+ & test set accuracy & $70.00\%$ & $90.00\%$ & $95.00\%$ \\
+ & test\_new set accuracy & $54.82\%$ & $90.35\%$ & $94.74\%$ \\
+ & time & $30.18$s & $34.44$s & $37.21$s \\
 \hline
 \end{tabular}
 \caption{Performance and time consumption on Tensorflow.}
