@@ -41,7 +41,7 @@ class Solver:
 					test_new_accuracy = self.sess.run(node_accuracy, feed_dict={node_X: X, node_y: y})
 					print(
 						"Epoch: {}, lr {:.4f}, loss {:.4f}, train acc {:.2f}%, test acc {:.2f}%, test_new acc {:.2f}%".format(
-							e+1, lr_it, mean_loss, train_accuracy, test_accuracy, test_new_accuracy
+							e+1, lr_it, mean_loss, train_accuracy * 100, test_accuracy * 100, test_new_accuracy * 100
 						)
 					)
 				lr_it = lr_it * lr_decay
