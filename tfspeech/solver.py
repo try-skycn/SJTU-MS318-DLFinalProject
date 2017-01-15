@@ -32,7 +32,7 @@ class Solver:
 					loss_list.append(loss)
 				if (e + 1) % print_every == 0:
 					mean_loss = np.mean(loss_list)
-					loss_list.clear()
+					loss_list = []
 					X, y = self.data.get("train")
 					train_accuracy = self.sess.run(node_accuracy, feed_dict={node_X: X, node_y: y})
 					X, y = self.data.get("test")
