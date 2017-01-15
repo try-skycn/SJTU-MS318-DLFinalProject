@@ -15,9 +15,9 @@
 
 \section{Introduction}
 
-In this report, we proposed some method for processing data in tone classification problem, used several deep neural networds structure, did some experiments, and compared their performance and time consumptions.
+In this report, we proposed some methods for processing data in tone classification problem, used several deep neural networks structure, did some experiments, and compared their performance and time consumptions among three popular deep learning toolkits: {\bf Torch}, {\bf Theano} and {\bf Tensorflow}.
 
-The data set that our teaching assistances gave us has only $400$ data for training. This is a number that is not so sufficient for very large or very deep network to train. Since then, we can only use some small networks. But, the data is not so regular that small networks can not sperate the original data. This situation forces us to find some way to preprocess our data, then to feed the preprocessed data into the networks.
+The data set that our teaching assistances gave us has only $400$ data for training. This is a number that is not so sufficient for very large or very deep network to train. Since then, we can only use some small networks. But the data is not so regular that small networks can not separate the original data. This situation forces us to find some way to preprocess our data, then to feed the preprocessed data into the networks.
 
 \section{Data Preprocessing}
 
@@ -47,7 +47,7 @@ Then for random error point (noise), if
 \[|f_i - f_{i - 1}| > C_1 \text{ and } |f_{i + 1} - f_{i - 1}| > C_2,\text{, then we let } f'_i = 2 \cdot f_{i- 1} - f_{i - 2}. \]
 else if
 \[|f_i - f_{i - 1}| > C_1 \text{ and } |f_{i + 1} - f_{i - 1}| \leq C_2,\text{, then we let } f'_i = 0.5 \cdot f_{i + 1} + f_{i - 1}. \]
-otherwise, the data point is not an error point, we simply keep $f'_i = f_i$. When we deal with the frequency $f_{i+1}$ of next frame, we substitute $f_{i}$ with $f'_i$.
+otherwise, the data point is not an error point, we simply keep $f'_i = f_i$. When we deal with the frequency $f_{i+1}$ of next frame, we substitute $f_{i}$ with $f'_i$. By observing the smoothed \texttt{f0} in training set, we adopt $C_1 = 0.32$ and $C_2 = 0.67$ in our experimental settings.
 
 The process above is good for the level tone, the rising tone and the falling tone, but for the falling-rising tone, it will change the shape of data curve. To solve this, we can do the same process as above but from the $N$-th frame to the first frame.
 
@@ -78,11 +78,18 @@ By here, we have already get a denoised \texttt{f0}. But they are not of the sam
 
 \end{enumerate}
 
+\begin{figure}[H]
+	\centering
+	\includegraphics[width = 0.4\textwidth]{figs/f0}
+	\includegraphics[width = 0.4\textwidth]{figs/Sf0}
+	\caption{Left: the \texttt{f0} features in the training set without smoothing; Right: the \texttt{f0} features in the training set after smoothing; Both are expanded to the length of 128 frames by linear interpolation.}
+\end{figure}
+
 \subsection{Centralization}
 For \texttt{data.linear} and \texttt{data.quad} we subtract their mean in the last step. The reason we do not apply centralization on  \texttt{data.quad} is we pad zero at the end of the data and do not want that part contains any information. Up to now, we have finish the data preprocessing part.
 
 \subsection{Other Approaches}
-Admittedly, rule-based data processing always has some drawbacks and cannot denoising very well. Therefore we also tried some other approaches using deep learning technique. One of them is denoising autoencoder (DAE). This approach can provide us a robust feature extraction and generating more data so that we can do data augmentation. However in experiment we found that the noise of \texttt{f0} is not Gaussian and adding white noise cannot improve its robustness. We discard this way.
+Admittedly, rule-based data processing always has some drawbacks and cannot denoising very well. Therefore we also tried some other approaches using deep learning technique. One of them is denoising autoencoder (DAE). This approach can provide us a robust feature extraction and generating more data so that we can do  {\bf data augmentation}. However in experiment we found that the noise of \texttt{f0} is not Gaussian and adding white noise cannot improve its robustness. We discard this way.
 
 \section{Models}
 
