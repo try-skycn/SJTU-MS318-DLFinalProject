@@ -7,6 +7,9 @@
 \newcommand{\authorID}{5140309566, 5140309562, 5140309561}
 \newcommand{\semester}{2016-2017 Fall}
 \begin{document}
+
+
+
 \maketitle
 \pagebreak
 
@@ -22,8 +25,13 @@ However, the frequencies in mel-scale are not very robust in the presence of add
 \subsection{Standardization}
 When normalizing data, we only divide its standard derivation but do not subtract its mean, since there are some zeros in the data sequence. Besides, we conduct two types of standardization. One is called \textbf{local standardization}, in which divide the \texttt{std} of a certain feature it self, to avoid some data varies in a huge range. The other is to divide the \texttt{std} of the whole data set for easier training, called \textbf{global standardization}. We do the local standardization first, then do global standardization, for both \texttt{f0} and \texttt{engy}.
 \subsection{Removing Redundancy}
-As we observe in the training data, there some redundancies in the \texttt{f0} features: Although the \texttt{engy} is very low (even is zero), the \texttt{f0} is still very high and behaves strangely. We think this part of \texttt{f0} is redundant because even human listeners cannot recognize a tone in very low volume. Further, this part of \texttt{f0} is more likely from environments instead of human speaker because of low corresponding \texttt{engy}. Hence, in data preprocessing, we discard the redundancies of \texttt{f0} such that corresponding $\mathtt{standardized(engy)} < 1.0$.
+As we observe in the training data, there some redundancies in the \texttt{f0} features: Although the \texttt{engy} is very low (even is zero), the \texttt{f0} is still very high and behaves strangely. We think this part of \texttt{f0} is redundant because even human listeners cannot recognize a tone in very low volume. Further, this part of \texttt{f0} is more likely from environments instead of human speaker because of low corresponding \texttt{engy}. Hence, in data preprocessing, we discard the redundancies of \texttt{f0} such that corresponding $\mathtt{standardized(engy)} < 1.0$. 
+
+We only keep the non-zero part of \texttt{f0} after processing as the output of this stage. This part of data still contains some noise. So in the next step, we are going to try to denoise the \texttt{f0} feature.
+
 \subsection{Smoothing}
+	We 
+%	\cite{tone:2000}
 
 \subsection{Data Expansion}
 \begin{enumerate}
@@ -182,5 +190,10 @@ cnn.fc & training set accuracy & \\
 \end{figure}
 
 \section{Conclusion}
+
+\section{References}
+\bibliography{main}
+
+\bibliographystyle{main}
 
 \end{document}
