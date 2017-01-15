@@ -6,7 +6,7 @@ require 'nn'
 print((require 'cjson'))
 
 MAX_LEN = 256
-max_len = 64
+max_len = 128
 -- Loader:new(obj, max_len)
 ldr = Loader:new(nil, MAX_LEN)
 function moving_avg(vec, window)
@@ -247,7 +247,7 @@ function make_dataset(name, mode)
 
         if mode == 'shift' then
             shifted_F0[{{2, (#tmpF0)[1] + 1}}] = tmpF0
-            shifted_Engy[{{2, (#tmpEngy)[1] + 1}}] = tmpEngy
+            -- shifted_Engy[{{2, (#tmpEngy)[1] + 1}}] = tmpEngy
             resized_collection.data[{i, {}, 1}] = shifted_F0
             resized_collection.data[{i, {}, 2}] = shifted_Engy
         elseif mode == 'quad' then
@@ -286,9 +286,9 @@ function make_dataset(name, mode)
     print("dataset "..name.." has been constructed!")
     return resized_collection, coef
 end
-trainset, tarincoef = make_dataset('train', 'quad')
-testset, testcoef = make_dataset('test', 'quad')
-newtestset, newtestcoef = make_dataset('test_new', 'quad')
+trainset, tarincoef = make_dataset('train', 'linear')
+testset, testcoef = make_dataset('test', 'linear')
+newtestset, newtestcoef = make_dataset('test_new', 'linear')
 function toTable(vec)
     local tmp = {}
     for i = 1, (#vec)[1] do

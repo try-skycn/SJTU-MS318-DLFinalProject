@@ -38,7 +38,7 @@ cmd:option('--hiddenSize', 64, 'umber of hidden units used in FC')
 
 --[[ data ]]--
 cmd:option('--dataset', 'Tone', 'dataset name: Tone')
-cmd:option('--maxLen', 64, 'length of input data')
+cmd:option('--maxLen', 128, 'length of input data')
 cmd:option('--trainEpochSize', 800, 'number of train examples seen between each epoch')
 cmd:option('--validEpochSize', -1, 'number of valid examples used for early stopping and cross-validation')
 cmd:option('--noTest', false, 'dont propagate through the test set')

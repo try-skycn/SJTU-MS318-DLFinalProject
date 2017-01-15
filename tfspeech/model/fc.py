@@ -5,7 +5,7 @@ def dense(X, dim, reg_list=None, actfn=tf.nn.relu):
 	_, idim = X.get_shape().as_list()
 	
 	weight_scale = np.sqrt(6.0/(idim+dim))
-	W = tf.get_variable(shape=(idim, dim), initializer=tf.random_uniform_initializer(minval=-weight_scale, maxval=weight_scale), dtype=tf.float32, name="W")
+	W = tf.get_variable(shape=(idim, dim), initializer=tf.random_normal_initializer(stddev=weight_scale), dtype=tf.float32, name="W")
 	b = tf.get_variable(shape=(dim, ), initializer=tf.zeros_initializer, dtype=tf.float32, name="b")
 	H = tf.matmul(X, W) + b
 	if actfn is not None:
