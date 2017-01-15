@@ -10,4 +10,49 @@
 \maketitle
 \pagebreak
 
+\section{Introduction}
+\section{Data Sets}
+
+In this project, we made $3$ datasets from the original data. They are
+\begin{enumerate}
+\item f0.shift.160
+
+	This dataset is made by shift the beginning of ``f0'' feature to its first non-zero element. Then we pad $0$s at the end of the data to make its length be $160$ (since the longest data has length $157$).
+
+	The dataset is saved in file ``shared data/data.f0.160.json''.
+\item data.linear
+
+	ToDo: Description of this dataset.
+
+	The dataset is saved in file ``shared data/data\_linear.json''.
+
+\item data.quad
+	
+	ToDo: Description of this dataset.
+
+	The dataset is saved in file ``shared data/data\_quad.json''.
+
+\end{enumerate}
+
+\section{Models}
+
+We tested two models on the datasets we have made.
+\begin{enumerate}
+\item pure.fc
+
+	This model has just one fully connected layer.
+
+	ToDo: Hyperparameters
+
+\item cnn.fc
+
+	This model has one convolution layer followed by one fully connected layer.
+
+	ToDo: Hyperparameters
+\end{enumerate}
+
+\section{Experiments}
+
+\section{Conclusion}
+
 \end{document}
