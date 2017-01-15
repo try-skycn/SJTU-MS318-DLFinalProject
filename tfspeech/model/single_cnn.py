@@ -42,6 +42,8 @@ class Model:
 	def compile(self):
 		self.graph = tf.Graph()
 
+		filter_size = self.kwargs["filter_size"]
+		num_channels = self.kwargs["num_channels"]
 		width = self.kwargs["width"]
 		reg = self.kwargs["reg"]
 		optimizer = self.kwargs["optimizer"]
@@ -57,8 +59,10 @@ class Model:
 			
 			H = Xfeed
 			with tf.variable_scope("Conv"):
-				Hconv1 = conv(H, F=64, C=3, reg_list=reg_list, actfn=tf.nn.relu)
+				Hconv1 = conv(H, F=num_channels, C=filter_size, reg_list=reg_list, actfn=tf.nn.relu)
 				H = Hconv1
+				Hpool2 = tf.squeeze(tf.nn.max_pool(tf.expand_dims(H, axis=1), ksize=(1, 1, 2, 1), strides=(1, 1, 2, 1), padding="SAME"), axis=1)
+				H = Hpool2
 			Hflatten = flatten(H)
 			H = Hflatten
 			with tf.variable_scope('FullyConnect'):
