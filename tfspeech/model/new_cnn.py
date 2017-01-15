@@ -57,16 +57,16 @@ class Model:
 			
 			H = Xfeed
 			with tf.variable_scope("Conv1"):
-				Hconv1 = conv(H, F=4, C=4, reg_list=reg_list, actfn=None)
+				Hconv1 = conv(H, F=64, C=3, reg_list=reg_list, actfn=tf.nn.relu)
 				H = Hconv1
 			with tf.variable_scope("Conv2"):
-				Hconv2 = conv(H, F=4, C=4, reg_list=reg_list, actfn=tf.nn.relu)
-				Hpool2 = tf.squeeze(tf.nn.max_pool(tf.expand_dims(Hconv2, axis=1), ksize=(1, 1, 4, 1), strides=(1, 1, 4, 1), padding="SAME"), axis=1)
-				H = Hpool2
+				Hconv2 = conv(H, F=32, C=3, reg_list=reg_list, actfn=tf.nn.relu)
+				# Hpool2 = tf.squeeze(tf.nn.max_pool(tf.expand_dims(Hconv2, axis=1), ksize=(1, 1, 4, 1), strides=(1, 1, 4, 1), padding="SAME"), axis=1)
+				H = Hconv2
 			with tf.variable_scope("Conv3"):
-				Hconv3 = conv(H, F=4, C=4, reg_list=reg_list, actfn=tf.nn.relu)
-				Hpool3 = tf.squeeze(tf.nn.max_pool(tf.expand_dims(Hconv3, axis=1), ksize=(1, 1, 4, 1), strides=(1, 1, 4, 1), padding="SAME"), axis=1)
-				H = Hpool3
+				Hconv3 = conv(H, F=16, C=3, reg_list=reg_list, actfn=tf.nn.relu)
+				# Hpool3 = tf.squeeze(tf.nn.max_pool(tf.expand_dims(Hconv3, axis=1), ksize=(1, 1, 4, 1), strides=(1, 1, 4, 1), padding="SAME"), axis=1)
+				H = Hconv3
 			Hflatten = flatten(H)
 			H = Hflatten
 			with tf.variable_scope("Hidden1"):
@@ -78,7 +78,12 @@ class Model:
 			with tf.variable_scope('FullyConnect'):
 				Y = dense(H, 4, actfn=None)
 			
-			reg_loss = 0.5 * reg * tf.add_n(reg_list)
+			if len(reg_list) == 0:
+				reg_loss = 0.0
+			elif len(reg_list) == 1:
+				reg_loss = 0.5 * reg * reg_list[0]
+			else:
+				reg_loss = 0.5 * reg * tf.add_n(reg_list)
 			softmax_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(Y, yfeed))
 			loss = reg_loss + softmax_loss
 			
