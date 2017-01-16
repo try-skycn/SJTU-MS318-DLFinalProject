@@ -280,7 +280,7 @@ But compare this result with other preprocessed dataset, we can see the effectiv
 
 {\bf Tensorflow}: Full-functional interface in Python, it is the most attractive feature of Tensorflow.  And its document is quite thorough.
 
-\subsection{The triumph of simple models}
+\subsection{The Triumph of Simple Models}
 We only compared performance among different simple models (pure.fc and cnn.fc) and found that even the simplest (single layer network) model can have highest performance our preprocessed dataset. Actually, we have tried many other complex models on this task (see \ref{other}), but they cannot outperform simple model for three reasons: 1) The small dataset we use is not sufficient to train a complex model. We try to do some data augmentation to solve this problem while it will even make the performance worse (see \label{dae}). 2) Complex model has much larger capacity than our simple classification task requires. 3) Hyper-parametesrs of complex model is more difficult to tune compared with a simple model. We failed to find a good hyper-parametesrs setting to outperform simple models.
 
 
