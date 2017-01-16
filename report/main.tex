@@ -88,6 +88,7 @@ By here, we have already get a denoised \texttt{f0}. But they are not of the sam
 For \texttt{data.linear} and \texttt{data.quad} we subtract their mean in the last step. The reason we do not apply centralization on  \texttt{data.quad} is we pad zero at the end of the data and do not want that part contains any information. Up to now, we have finish the data preprocessing part.
 
 \subsection{Other Approaches}
+\label{dae}
 Admittedly, rule-based data processing always has some drawbacks and cannot denoising very well. Therefore we also tried some other approaches using deep learning technique. One of them is denoising autoencoder (DAE). This approach can provide us a robust feature extraction and generating more data so that we can do  {\bf data augmentation}. However in experiment we found that the noise of \texttt{f0} is not Gaussian and adding white noise cannot improve its robustness. We discard this way.
 
 \section{Models}
@@ -110,6 +111,7 @@ We tested two models on the three different datasets we have made for comparing 
 \end{enumerate}
 
 \subsection{Other Models We Explored}
+\label{other}
 In additional to those two simple models above, we also tried some complicated models. We implement these models in {\bf Torch}. You can find them in folder ``torch/extra''.
 \subsubsection{Attention-based Recurrent Neural Networks}
 Since we meet sequence data in this problem, we want to check whether RNN is suitable for this problem. We first tried an RNN of  hidden size 128 and it performs unstable. LSTM is also tried to achieve more stable performance. However, in experiment we find the generalization ability is very poor. The highest performance on \texttt{test\_new} is about 50\%.
@@ -131,15 +133,15 @@ We use a convolutional layer with 4 $4\times 1$ kernels and a pooling layer of s
 	\caption{Right: The structure of Temporal CNN + Attention-based LSTM}
 \end{figure}
 
-%<<<<<<< HEAD
+
 \section{Experiments}
 
 We tried each model on each dataset, implemented by each framework.
 Note that for accuracies we take the maximum over all trails and for time consumption, we ran each program for ten times, and then calculate its mean and standard deviation.
 The CPU is Intel Xeon E3-1230 V2 @ 3.3GHz.
 
-\subsection{Hyperparameters}
-
+\subsection{Hyper-parameters}
+We use following hyper-parameters settings for experiments.
 \begin{table}[H]
 \centering
 \begin{tabular}{|r|c|c|c|}
@@ -190,7 +192,7 @@ number of epochs & $400$ \\
 
 \subsection{Experiments result}
 
-Now we show the performance and time consumption.
+Now we show the performance and time consumption. The detailed analysis can be found in section \ref{conclusion}.
 
 \begin{table}[H]
 \centering
@@ -253,6 +255,7 @@ cnn.fc & training set accuracy & $90.25\%$ & $\bm{97.75}$\% & 95.50 \% \\
 \end{table}
 
 \section{Conclusion}
+\label{conclusion}
 
 \subsection{Time consumption}
 
@@ -276,8 +279,9 @@ But compare this result with other preprocessed dataset, we can see the effectiv
 {\bf Theano}: It would be somewhat messy if you use Theano without Keras. You need to implement every low level details for constructing NNs and training it well. 
 
 {\bf Tensorflow}: Full-functional interface in Python, it is the most attractive feature of Tensorflow.  And its document is quite thorough.
-%\subsection{The triumph of simple models}
-%The experiment shows that the simple model
+
+\subsection{The triumph of simple models}
+We only compared performance among different simple models (pure.fc and cnn.fc) and found that even the simplest (single layer network) model can have highest performance our preprocessed dataset. Actually, we have tried many other complex models on this task (see \ref{other}), but they cannot outperform simple model for three reasons: 1) The small dataset we use is not sufficient to train a complex model. We try to do some data augmentation to solve this problem while it will even make the performance worse (see \label{dae}). 2) Complex model has much larger capacity than our simple classification task requires. 3) Hyper-parametesrs of complex model is more difficult to tune compared with a simple model. We failed to find a good hyper-parametesrs setting to outperform simple models.
 
 
 %\section{References}
